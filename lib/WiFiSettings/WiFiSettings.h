@@ -23,7 +23,7 @@ private:
   String ssidAccessPoint = "";
 
   /* Password */
-  String passwordAccessPoint = "";
+  String passwordAccessPoint = "administrator";
 
   /* SSID */
   String ssidNetwork = "";
@@ -55,7 +55,7 @@ public:
       
       if (! this->isInitialized()) {
         this->setAccessPointSSID(String("ESP-" + WiFi.macAddress()));
-        this->setAccessPointPassword("");
+        this->setAccessPointPassword(this->passwordAccessPoint);
         this->saveAuthorizationAccessPoint();
       }
     }

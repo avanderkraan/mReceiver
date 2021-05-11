@@ -4,19 +4,19 @@
 String getSendData(Settings * pSettings, String macAddress) {
   String result = "{";
   result += "\"data\": {";
-  result += "\"firmwareVersion\":";
+  result += "\"v\":";        // firmwareVersion
   result += "\"";
   result += pSettings->getFirmwareVersion();
   result += "\",";
-  result += "\"deviceKey\":";
+  result += "\"key\":";      // deviceKey
   result += "\"";
   result += pSettings->getDeviceKey();
   result += "\",";
-  result += "\"macAddress\":";
+  result += "\"mac\":";      // macAddress
   result += "\"";
   result += macAddress;
   result += "\",";
-  result += "\"roleModel\":";
+  result += "\"rM\":";       // roleModel id
   result += "\"";
   result += pSettings->getRoleModel();
   result += "\"";

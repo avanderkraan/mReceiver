@@ -58,6 +58,8 @@ uint32_t pulsesPerMinute = 0;       // holds the value of pulses per minute
 uint32_t revolutions = 0;           // holds the value of revolutions of the first axis, calculated with ratio
 uint32_t viewPulsesPerMinute = 0;   // holds the value of ends per minute calculated with ratio
 
+String INDEPENDENT = "independent"; // means that motor is driven independent of any response
+
 Settings settings = Settings();
 Settings* pSettings = &settings;
 
@@ -79,7 +81,7 @@ bool detectButtonFlag = false;
 // detectUpdateFlag is True is an update from the server is requested
 bool detectUpdateFlag = false;
 
-// updateSucceeded is true is the update succeeded, so a restart can be done
+// updateSucceeded is true is the update succeeded or if a restart is asked, so a restart can be done
 bool updateSucceeded = false;
 
 
@@ -264,26 +266,6 @@ void switchToNetwork() {
 
 }
 
-/*
-void writeResult(WiFiClient wifiClient, String result) {
-  wifiClient.print(result);
-  wifiClient.flush();
-}
-*/
-
-/* flashes PIN, unit is milliseconds (0-256) */
-void flashPin(uint8_t pin, uint8_t ms) {
-  digitalWrite(pin, HIGH);
-  for (uint16_t i = 0; i <= ms; i++)
-  {
-    delayMicroseconds(250);   // delay in the loop could cause an exception (9) when using interrupts
-    delayMicroseconds(250);   // delay in the loop could cause an exception (9) when using interrupts
-    delayMicroseconds(250);   // delay in the loop could cause an exception (9) when using interrupts
-    delayMicroseconds(250);   // delay in the loop could cause an exception (9) when using interrupts
-  }
-  digitalWrite(pin, LOW);
-}
-
 void delayInMillis(uint8_t ms)
 {
   for (uint8_t i = 0; i <= ms; i++)
@@ -374,12 +356,8 @@ void mydebug() {
   Serial.println("wifi gegevens");
   Serial.print("readAccessPointSSID: ");
   Serial.println(pWifiSettings->readAccessPointSSID());
-  Serial.print("readAccessPointPassword: ");
-  Serial.println(pWifiSettings->readAccessPointPassword());
   Serial.print("readNetworkSSID: ");
   Serial.println(pWifiSettings->readNetworkSSID());
-  Serial.print("readNetworkPassword: ");
-  Serial.println(pWifiSettings->readNetworkPassword());
 
   Serial.print("Chip ID: ");
   Serial.println(ESP.getFlashChipId());
@@ -398,6 +376,9 @@ void mydebug() {
 
   Serial.print("firmware version: ");
   Serial.println(pSettings->getFirmwareVersion());
+
+  Serial.print("MAC address: ");
+  Serial.println(WiFi.macAddress());
 
   Serial.print("connected roleModel: ");
   Serial.println(pSettings->getRoleModel());
@@ -506,6 +487,46 @@ void handleVersion() {
   }
 }
 
+void handleRestart() {
+  uint8_t argumentCounter = 0;
+  String result = "";
+  String result_nl = "";
+
+  if (server.method() == HTTP_POST)
+  {
+    argumentCounter = server.args();
+    String name = "";
+    for (uint8_t i=0; i< server.args(); i++){
+      if (server.argName(i) == "name") {
+        name = server.arg(i);
+      }
+    }
+    // search name 
+    if (name == "restart")
+    {
+      if (argumentCounter > 0)
+      {
+        updateSucceeded = true;
+        result = "Restart completed";
+        result_nl = "Restart compleet";
+      }
+    }
+  }
+  if (pSettings->getLanguage() == "NL")
+  {
+    server.sendHeader("Cache-Control", "no-cache");
+    server.sendHeader("Connection", "keep-alive");
+    server.sendHeader("Pragma", "no-cache");
+    server.send(200, "text/html", result_nl);
+  }
+  else
+  {
+    server.sendHeader("Cache-Control", "no-cache");
+    server.sendHeader("Connection", "keep-alive");
+    server.sendHeader("Pragma", "no-cache");
+    server.send(200, "text/html", result);
+  }
+}
 /* void alive must be used in clients only
 but for now, in develop-phase it is allowed here
 TODO remove this when clients are available to test
@@ -517,6 +538,9 @@ void getMDNS() {
   String result = "";
 
   result += firstFreeHostname;
+  result += "<";
+  result += pSettings->getRoleModel();
+  result += ">";
   result += "\r\n";
 
   String allowServer = pSettings->getTargetServer() + ":" + pSettings->getTargetPort();
@@ -548,6 +572,9 @@ void getMyIP() {
     myIP = WiFi.localIP().toString();
   }
   result += myIP;
+  result += "<";
+  result += pSettings->getRoleModel();
+  result += ">";
   result += "\r\n";
 
   String allowServer = pSettings->getTargetServer() + ":" + pSettings->getTargetPort();
@@ -572,13 +599,31 @@ void handleRoleModel() {
   {
     //argumentCounter = server.args();  // if argumentCounter > 0 then save
     String roleModel = "";
+    String _speed = "";
     for (uint8_t i=0; i< server.args(); i++){
       if (server.argName(i) == "id") {
-        roleModel = server.arg(i);
-        pSettings->setRoleModel(roleModel);
-        result += "rolemodel is saved";
-        result_nl += "rolmodel is opgeslagen";
+        if (server.arg(i).length() > 32) {
+          roleModel = server.arg(i).substring(0, 32);
+        }
+        else{
+          roleModel = server.arg(i);
+        }   
       }
+      if (roleModel == INDEPENDENT)
+      {
+        if (server.argName(i) == "speed") {
+          if (server.arg(i).length() < 6) { 
+            _speed = server.arg(i);     // speed in revolutions per hour
+            motorSpeedStepper = round(_speed.toInt() * stepsPerRevolution / 3600);
+          }
+        }
+      }
+    }
+    if (pSettings->getRoleModel() != roleModel)
+    {
+      pSettings->setRoleModel(roleModel);
+      result += "rolemodel is saved";
+      result_nl += "rolmodel is opgeslagen";
     }
   }
   if (pSettings->getLanguage() == "NL")
@@ -716,6 +761,7 @@ void handleWifiConnect() {
       if (argumentCounter > 0) {
         pWifiSettings->saveAuthorizationAccessPoint();
         result += "Access Point data has been saved\n";
+        result_nl += "Access Point gegevens zijn opgeslagen\n";
       }
     }
     if (name == "network")
@@ -861,21 +907,20 @@ String getValueFromJSON(String key, String responseData)
 
 void processServerData(String responseData) {
   /* data should come in JSON format */
-  String proposedUUID = getValueFromJSON("proposedUUID", responseData);
+  String proposedUUID = getValueFromJSON("pKey", responseData);
   if ((proposedUUID != "") && (pSettings->getDeviceKey() != proposedUUID))
   {
     pSettings->setDeviceKey(proposedUUID);
     pSettings->saveConfigurationSettings(); // save to EEPROM
   }
 
-  String pushFirmwareVersion = getValueFromJSON("pushFirmware", responseData);
+  String pushFirmwareVersion = getValueFromJSON("pFv", responseData);
   if (pushFirmwareVersion != "")
   {  
     detectUpdateFlag = true;
   }
-  String cpm = getValueFromJSON("cpm", responseData);
 
-  String rpm = getValueFromJSON("rpm", responseData);
+  String rph = getValueFromJSON("rph", responseData);
   
   
   // TODO: could be used on a display:
@@ -883,26 +928,16 @@ void processServerData(String responseData) {
   //String message = getValueFromJSON("message", responseData);
   // end TODO:
 
-  motorSpeedStepper = 0;
-  if (cpm != "")
+  //if (pSettings->getRoleModel() != INDEPENDENT)
+  //{
+  //  motorSpeedStepper = 0;
+  //}
+  if (rph != "")
   {
-
-    uint16_t speedValue = (uint16_t)cpm.toInt();
-
-    if (speedValue * stepsPerRevolution / 240 < MAX_SPEED) {  // 60*4=240 for 4 blades
-       motorSpeedStepper = round(speedValue * stepsPerRevolution / 240);
-    }
-    else {
-      motorSpeedStepper = MAX_SPEED;
-    }
-    //smoothAcceleration();
-  }
-  if (rpm != "")
-  {
-    uint16_t speedValue = (uint16_t)rpm.toInt();
-    // setSpeed is per second, rpm is per minute, so divide by 60
-    if ((speedValue / 60) * stepsPerRevolution < MAX_SPEED) {
-       motorSpeedStepper = round((speedValue / 60) * stepsPerRevolution);
+    uint16_t speedValue = (uint16_t)rph.toInt();
+    // setSpeed is per second, rph is per hour, so divide by 3600
+    if (speedValue * stepsPerRevolution / 3600 < MAX_SPEED) {
+       motorSpeedStepper = round(speedValue * stepsPerRevolution / 3600);
     }
     else {
       motorSpeedStepper = MAX_SPEED;
@@ -972,6 +1007,7 @@ void initServer()
   server.on("/saveSettings/", saveSettings);
   server.on("/reset/", resetWiFiManagerToFactoryDefaults);
   server.on("/update/", handleVersion);
+  server.on("/restart/", handleRestart);
 
   // handles debug
   server.on("/debug/", mydebug);
