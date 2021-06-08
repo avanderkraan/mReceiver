@@ -16,7 +16,7 @@ private:
   /* 4 bytes to store, version of this firmware */
   uint8_t major = 0;   // max 2^8 = 256
   uint8_t minor = 1;   // max 2^8 = 256
-  uint16_t patch = 3;  // max 2^16 = 65536
+  uint16_t patch = 4;  // max 2^16 = 65536
 
   /* start as Access Point or as Network client */
   bool startAsAccessPoint = false;
@@ -28,9 +28,9 @@ private:
   uint16_t SEND_PERIOD = 5000;
 
   /* target server, max size = 32 */
-  String targetServer = "http://meandmy.info";
+  String targetServer = "http://www.draaiendemolens.nl";
   /* factoryTargetServer */
-  String factoryTargetServer = "http://meandmy.info";
+  String factoryTargetServer = "http://www.draaiendemolens.nl";
 
   /* target port */
   uint16_t targetPort = 80;

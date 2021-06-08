@@ -548,7 +548,24 @@ void getMDNS() {
   if ((pSettings->getTargetPort() == 80) || (pSettings->getTargetPort() == 443))
   {
     allowServer = pSettings->getTargetServer();
-  } 
+  }
+      
+  uint8_t argumentCounter = 0;
+  argumentCounter = server.args();
+  if (argumentCounter == 1) {
+    for (uint8_t i=0; i< server.args(); i++){
+      if (server.argName(i) == "name") {
+        allowServer = server.arg(i);
+        int8_t index = allowServer.lastIndexOf("/");
+        if (index > -1) {
+          if ((uint8_t)index == allowServer.length() -1) {
+            allowServer = allowServer.substring(0, index);
+          }
+        }
+      }
+    }
+  }
+
   server.sendHeader("Cache-Control", "no-cache");
   server.sendHeader("Connection", "keep-alive");
   server.sendHeader("Pragma", "no-cache");
@@ -582,7 +599,26 @@ void getMyIP() {
   if ((pSettings->getTargetPort() == 80) || (pSettings->getTargetPort() == 443))
   {
     allowServer = pSettings->getTargetServer();
-  } 
+  }
+
+  uint8_t argumentCounter = 0;
+  argumentCounter = server.args();
+  if (argumentCounter == 1) {
+    for (uint8_t i=0; i< server.args(); i++){
+      if (server.argName(i) == "name") {
+        allowServer = server.arg(i);
+        int8_t index = allowServer.lastIndexOf("/");
+        if (index > -1) {
+          if ((uint8_t)index == allowServer.length() -1) {
+            allowServer = allowServer.substring(0, index);
+          }
+        }
+      }
+    }
+  }
+
+  Serial.println(allowServer);
+
   server.sendHeader("Cache-Control", "no-cache");
   server.sendHeader("Connection", "keep-alive");
   server.sendHeader("Pragma", "no-cache");
