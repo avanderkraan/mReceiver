@@ -13,6 +13,9 @@ void showWiFiMode_nl(ESP8266WebServer &server, Settings * pSettings);
 /* show saved setting values from EEPROM */
 void showSavedSettings(ESP8266WebServer &server, Settings * pSettings);
 void showSavedSettings_nl(ESP8266WebServer &server, Settings * pSettings);
+/* choose spinning */
+void spin(ESP8266WebServer &server, Settings * pSettings);
+void spin_nl(ESP8266WebServer &server, Settings * pSettings);
 /* choose settings for the device and the target server */
 void device(ESP8266WebServer &server, Settings * pSettings);
 void device_nl(ESP8266WebServer &server, Settings * pSettings);

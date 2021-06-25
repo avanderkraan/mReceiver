@@ -322,6 +322,17 @@ void handleWiFi() {
   }
 }
 
+void handleSpin() {
+  if (pSettings->getLanguage() == "NL")
+  {
+    spin_nl(server, pSettings);
+  }
+  else
+  {
+    spin(server, pSettings);
+  }
+}
+
 void handleDevice() {
   if (pSettings->getLanguage() == "NL")
   {
@@ -368,7 +379,7 @@ void mydebug() {
   Serial.print("Chip Size: ");
   Serial.println(ESP.getFlashChipSize());
  
-  Serial.print("Chip Speed: ");
+  Serial.print("Chip dd: ");
   Serial.println(ESP.getFlashChipSpeed());
  
   Serial.print("Chip Mode: ");
@@ -910,6 +921,72 @@ void handleDeviceSettings()
   Serial.println(result);
 }
 
+void handleSpinSettings()
+{
+  uint8_t argumentCounter = 0;
+  String result = "";
+  String result_nl = "";
+
+  if (server.method() == HTTP_POST)
+  {
+    // extract the settings-data and take action
+    argumentCounter = server.args();  // if argumentCounter > 0 then saveConfigurationSettings
+    String _name = "";
+    String _spinMode = "";
+    String _roleModelSpeed = "";
+    String _roleModelCode = "";
+    for (uint8_t i=0; i< server.args(); i++){
+      if (server.argName(i) == "name") {
+        _name = server.arg(i);
+      }
+      if (server.argName(i) == "spinMode") {
+        _spinMode = server.arg(i);
+      }
+      if (server.argName(i) == "roleModelSpeed") {
+        _roleModelSpeed = server.arg(i);
+      }
+      if (server.argName(i) == "roleModelCode") {
+        _roleModelCode = server.arg(i);
+      }
+    }
+    // zoek name (is device, targetServer of targetserverData en dan de andere parameters)
+    if (_name == "spin")
+    {
+      if (_spinMode == INDEPENDENT) {
+        pSettings->setRoleModel(INDEPENDENT);
+        if (_roleModelSpeed.toInt() * stepsPerRevolution / 60 < MAX_SPEED) {
+          motorSpeedStepper = round(_roleModelSpeed.toInt() * stepsPerRevolution / 60);
+         }
+         else {
+           motorSpeedStepper = MAX_SPEED;
+         }
+      }
+      if (_spinMode == "connected")
+      {
+        pSettings->setRoleModel(_roleModelCode); 
+      }
+      if (_spinMode == "stop")
+      {
+        pSettings->setRoleModel("None");
+      }
+    }
+    if (argumentCounter > 0) {
+      pSettings->saveConfigurationSettings();
+      result += "Device data has been saved\n";
+      result_nl += "Apparaatgegevens zijn opgeslagen\n";
+    }
+  }
+  if (pSettings->getLanguage() == "NL")
+  {
+    server.send(200, "text/plain", result_nl);
+  }
+  else
+  {
+    server.send(200, "text/plain", result);
+  }
+  Serial.println(result);
+}
+
 void smoothAcceleration() {
     if (motorSpeedStepper - previousMotorSpeedStepper > 20)
     {
@@ -1023,11 +1100,13 @@ void initServer()
 
   // interactive pages
   server.on("/device/", handleDevice);
+  server.on("/spin/", handleSpin);
   server.on("/wifi/", handleWiFi);
   // handles input from interactive pages
   server.on("/networkssid/", handleNetworkSSID);
   server.on("/wifiConnect/", handleWifiConnect);
   server.on("/deviceSettings/", handleDeviceSettings);
+  server.on("/spinSettings/", handleSpinSettings);
   server.on("/language/", handleLanguage);
 
   // data handler

@@ -72,7 +72,9 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "<br><br><br>\r\n";
   result += "<a href='/help/'>help</a> help/home screen\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/device/'>Model settings</a> WiFi mode, Server settings\r\n";
+  result += "<a href='/spin/'>Model spin settings</a> Set speed or connect a real mill\r\n";
+  result += "<br><br>\r\n";
+  result += "<a href='/device/'>Model startup settings</a> WiFi mode, Server settings\r\n";
   result += "<br><br>\r\n";
   result += "<a href='/wifi/'>WiFi</a> settings to connect the Model to WiFi\r\n";
   result += "<br><br>\r\n";
@@ -176,6 +178,348 @@ void showSavedSettings(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   result += "<br>\r\n";
   result += "<a href='/help/'>Go to the home/help page</a>\r\n";
+  result += "</body>\r\n";
+  result += "</html>\r\n";
+  server.sendHeader("Cache-Control", "no-cache");
+  server.sendHeader("Connection", "keep-alive");
+  server.sendHeader("Pragma", "no-cache");
+  server.send(200, "text/html", result);
+}
+
+void spin_nl(ESP8266WebServer &server, Settings * pSettings)
+{
+  String result = "<!DOCTYPE HTML><html>\r\n";
+  result += "<head>\r\n";
+  result += "<meta charset=\"utf-8\">\r\n";
+  result += "<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\r\n";
+  result += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n";
+  result += "<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\r\n";
+  result += "<link rel='icon' type='image/png' href='data:image/png;base64,iVBORw0KGgo='>\r\n";
+  result += "<title>model</title>\r\n";
+  result += "</head>\r\n";
+  result += "<body>\r\n";
+  result += "Draai Instellingen voor het Model\r\n";
+  result += "<br><br><br>\r\n";
+  result += "<div id=\"spinSetting\" onclick=\"clearMessage();\">\r\n";
+  result += "    Dit model kan zelf draaien maar kan ook gekoppeld zijn aan een echte molen \r\n";
+  result += "    <br>\r\n";
+  result += "<input type=\"radio\" name=\"spin\" onclick=\"displaySpinSetting()\" value=\"independent\" ";
+  result += (pSettings->getRoleModel() == "independent")?"checked":"";
+  result += "> Zelfstandig\r\n";
+  result += "<br>\r\n";
+  result += "<input type=\"radio\" name=\"spin\" onclick=\"displaySpinSetting()\" value=\"connected\" ";
+  result += ((pSettings->getRoleModel() != "independent") && (pSettings->getRoleModel() != "None"))?"checked":"";
+  result += "> Gekoppeld aan een molen\r\n";
+  result += "<br>\r\n";
+  result += "<input type=\"radio\" name=\"spin\" onclick=\"displaySpinSetting()\" value=\"stop\" ";
+  result += (pSettings->getRoleModel() == "None")?"checked":"";
+  result += "> Stop\r\n";
+  result += "<br>\r\n";
+  result += "<br>\r\n";
+
+  result += "<div id=\"spinSettingSpeed\">\r\n";
+  result += "Geef een snelheid op (0-15 toeren per minuut)\r\n";
+  result += "<br>\r\n";
+  result += " Speed <input type=\"text\" name=\"roleModelSpeed\" min=\"0\" max=\"15\" maxlength=\"2\" size=\"3\" onkeyup=\"checkNumber(this, 'speedMessage', 'Invalid number (0 - 15), changed to 15');\" placeholder=\"0\" value=\"15\"";
+  result += "\"> Max 2 karakters\r\n";
+  result += "<div id=\"speedMessage\"></div>\r\n";
+  result += "</div>\r\n";
+
+  result += "<div id=\"spinSettingCode\">\r\n";
+  result += "Geef een molencode\r\n";
+  result += "<br>\r\n";
+  result += "Ga voor een lijst naar \r\n";
+  if (WiFi.getMode() == WIFI_STA)
+  {
+    result += "<a href=\"";
+    result += pSettings->getTargetServer();
+    result += "\" target=\"_blank\">\r\n";
+  }
+  result += pSettings->getTargetServer();
+  if (WiFi.getMode() == WIFI_STA)
+  {
+    result += "</a>\r\n";
+  } 
+  result += "<br>\r\n";
+  result += " Code <input type=\"text\" name=\"roleModelCode\" maxlength=\"32\" size=\"33\" placeholder=\"nl_01234\" value=\"";
+  if (pSettings->getRoleModel() != "independent")
+  {
+    result += pSettings->getRoleModel();
+  }
+  result += "\"> Max 32 karakters\r\n";
+  result += "</div>\r\n";
+
+  result += "</div>\r\n";
+
+  result += "<br><br>\r\n";
+  result += "  Na 'Save' even geduld tot er een bevestiging is.\r\n";
+  result += "<br>\r\n";
+  result += "<input id=\"spinButton\" type=\"button\" name=\"spinButton\" value=\"Save\" onclick=\"saveSpinSetting()\">\r\n";
+  result += "<input type=\"button\" name=\"spinCancelButton\" value=\"Cancel\" onclick=\"cancelSettings()\">\r\n";
+
+  result += "\r\n";
+  result += "<br>\r\n";
+  result += "<div id=\"sendMessage\"></div>\r\n";
+
+  result += "<br>\r\n";
+  result += "<br>\r\n";
+  result += "<a href='/help/'>Ga naar de begin/help pagina</a>\r\n";
+  result += "<script>\r\n";
+
+  result += "function clearMessage() {\r\n";
+  result += "  document.getElementById(\"sendMessage\").innerHTML = \"\";\r\n";
+  result += "}\r\n";
+
+  result += "  function checkNumber(component, messageId, message) {\r\n";
+  result += "  //var validCharacterString = \"0123456789-.\";\r\n";
+  result += "  var valid = false;\r\n";
+  result += "    if ((component.value >= Number(component.getAttribute(\"min\"))) && (component.value <= Number(component.getAttribute(\"max\")))) {\r\n";
+  result += "        valid = true;\r\n";
+  result += "    }\r\n";
+  result += "    if (valid) {\r\n";
+  result += "      document.getElementById(messageId).innerHTML = \"\";\r\n";
+  result += "    }\r\n";
+  result += "    else {\r\n";
+  result += "      document.getElementById(messageId).innerHTML = message;\r\n";
+  result += "      component.value = component.getAttribute(\"max\");\r\n";
+  result += "    }\r\n";
+  result += "    return valid;\r\n";
+  result += "  }\r\n";
+  result += "\r\n";
+
+  result += "  function displaySpinSetting() {\r\n";
+  result += "    var spinMode = \"\"\r\n";
+  result += "    var ele = document.getElementsByName(\"spin\") || [];\r\n";
+  result += "    for(i = 0; i < ele.length; i++) {\r\n";
+  result += "      if(ele[i].checked) {\r\n";
+  result += "        spinMode = ele[i].value;\r\n";
+  result += "      }\r\n";
+  result += "    }\r\n";
+  result += "    if (spinMode == \"independent\") {\r\n";
+  result += "        document.getElementById(\"spinSettingSpeed\").style.display=\"block\";\r\n";
+  result += "        document.getElementById(\"spinSettingCode\").style.display=\"none\";\r\n";
+  result += "    }\r\n";
+  result += "    else {\r\n";
+  result += "        document.getElementById(\"spinSettingSpeed\").style.display=\"none\";\r\n";
+  result += "        document.getElementById(\"spinSettingCode\").style.display=\"block\";\r\n";
+  result += "    }\r\n";
+  result += "    if (spinMode == \"stop\") {\r\n";
+  result += "        document.getElementById(\"spinSettingSpeed\").style.display=\"none\";\r\n";
+  result += "        document.getElementById(\"spinSettingCode\").style.display=\"none\";\r\n";
+  result += "    };\r\n";
+  result += "}\r\n";
+
+  result += "  function cancelSettings() {\r\n";
+  result += "    window.location.reload();\r\n";
+  result += "  }\r\n";
+  result += "  function sendData(data) {\r\n";
+  result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
+  result += "    xhr.open(\"POST\", \"/spinSettings/\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    //xhr.setRequestHeader(\"Content-Type\", \"application/json\");\r\n";
+  result += "      document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
+  result += "      xhr.onreadystatechange = function() { // Call a function when the state changes.\r\n";
+  result += "        var myResponseText = \"\";\r\n";
+  result += "        if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {\r\n";
+  result += "          myResponseText = this.responseText || \"\";\r\n";
+  result += "        }\r\n";
+  result += "        if (this.readyState === XMLHttpRequest.DONE && this.status !== 200) {\r\n";
+  result += "          myResponseText = this.statusText || \"\";\r\n";
+  result += "        }\r\n";
+  result += "        document.getElementById(\"sendMessage\").innerHTML = myResponseText;\r\n";
+  result += "      }\r\n";
+  //result += "    }\r\n";
+  result += "    xhr.send(data);\r\n";
+  result += "  }\r\n";
+  result += "\r\n";
+  result += "  function saveSpinSetting() {\r\n";
+  result += "    var ele = document.getElementsByName(\"spin\");\r\n";
+  result += "    var spinmode = \"\"\r\n";
+  result += "    for(i = 0; i < ele.length; i++) {\r\n";
+  result += "      if(ele[i].checked) {\r\n";
+  result += "        spinMode = ele[i].value;\r\n";
+  result += "      }\r\n";
+  result += "    }\r\n";
+  result += "    var roleModelSpeed = document.getElementsByName(\"roleModelSpeed\")[0].value || \"\";\r\n";
+  result += "    var roleModelCode = document.getElementsByName(\"roleModelCode\")[0].value || \"\";\r\n";
+  result += "    var params = \"name=spin\" + \"&spinMode=\" + spinMode + \"&roleModelSpeed=\" + roleModelSpeed + \"&roleModelCode=\" + roleModelCode;\r\n";
+  result += "    sendData(params);\r\n";
+  result += "  }\r\n";
+  result += "displaySpinSetting();\r\n";
+  result += "</script>\r\n";
+
+  result += "\r\n";
+  result += "</body>\r\n";
+  result += "</html>\r\n";
+  server.sendHeader("Cache-Control", "no-cache");
+  server.sendHeader("Connection", "keep-alive");
+  server.sendHeader("Pragma", "no-cache");
+  server.send(200, "text/html", result);
+}
+
+void spin(ESP8266WebServer &server, Settings * pSettings)
+{
+  String result = "<!DOCTYPE HTML><html>\r\n";
+  result += "<head>\r\n";
+  result += "<meta charset=\"utf-8\">\r\n";
+  result += "<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\r\n";
+  result += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n";
+  result += "<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\r\n";
+  result += "<link rel='icon' type='image/png' href='data:image/png;base64,iVBORw0KGgo='>\r\n";
+  result += "<title>model</title>\r\n";
+  result += "</head>\r\n";
+  result += "<body>\r\n";
+  result += "Spin Settings for the Model\r\n";
+  result += "<br><br><br>\r\n";
+  result += "<div id=\"spinSetting\" onclick=\"clearMessage();\">\r\n";
+  result += "    This model can spin by itself and also be connected to a real mill \r\n";
+  result += "    <br>\r\n";
+  result += "<input type=\"radio\" name=\"spin\" onclick=\"displaySpinSetting()\" value=\"independent\" ";
+  result += (pSettings->getRoleModel() == "independent")?"checked":"";
+  result += "> Independent\r\n";
+  result += "<br>\r\n";
+  result += "<input type=\"radio\" name=\"spin\" onclick=\"displaySpinSetting()\" value=\"connected\" ";
+  result += ((pSettings->getRoleModel() != "independent") && (pSettings->getRoleModel() != "None"))?"checked":"";
+  result += "> Connect to a mill\r\n";
+  result += "<br>\r\n";
+  result += "<input type=\"radio\" name=\"spin\" onclick=\"displaySpinSetting()\" value=\"stop\" ";
+  result += (pSettings->getRoleModel() == "None")?"checked":"";
+  result += "> Stop\r\n";
+  result += "<br>\r\n";
+  result += "<br>\r\n";
+
+  result += "<div id=\"spinSettingSpeed\">\r\n";
+  result += "Enter a speed (0-15 revolutions per minute)\r\n";
+  result += "<br>\r\n";
+  result += " Speed <input type=\"text\" name=\"roleModelSpeed\" min=\"0\" max=\"15\" maxlength=\"2\" size=\"3\" onkeyup=\"checkNumber(this, 'speedMessage', 'Invalid number (0 - 15), changed to 15');\" placeholder=\"0\" value=\"15\"";
+  result += "\"> Max 2 characters\r\n";
+  result += "<div id=\"speedMessage\"></div>\r\n";
+  result += "</div>\r\n";
+
+  result += "<div id=\"spinSettingCode\">\r\n";
+  result += "Enter a millcode\r\n";
+  result += "<br>\r\n";
+  result += "Find a list on \r\n";
+  if (WiFi.getMode() == WIFI_STA)
+  {
+    result += "<a href=\"";
+    result += pSettings->getTargetServer();
+    result += "\" target=\"_blank\">\r\n";
+  }
+  result += pSettings->getTargetServer();
+  if (WiFi.getMode() == WIFI_STA)
+  {
+    result += "</a>\r\n";
+  } 
+  result += "<br>\r\n";
+  result += " Code <input type=\"text\" name=\"roleModelCode\" maxlength=\"32\" size=\"33\" placeholder=\"nl_01234\" value=\"";
+  if (pSettings->getRoleModel() != "independent")
+  {
+    result += pSettings->getRoleModel();
+  }
+  result += "\"> Max 32 characters\r\n";
+  result += "</div>\r\n";
+
+  result += "</div>\r\n";
+
+  result += "<br><br>\r\n";
+  result += "After 'Save' wait for confirmation.\r\n";
+  result += "<br>\r\n";
+  result += "<input id=\"spinButton\" type=\"button\" name=\"spinButton\" value=\"Save\" onclick=\"saveSpinSetting()\">\r\n";
+  result += "<input type=\"button\" name=\"spinCancelButton\" value=\"Cancel\" onclick=\"cancelSettings()\">\r\n";
+
+  result += "\r\n";
+  result += "<br>\r\n";
+  result += "<div id=\"sendMessage\"></div>\r\n";
+
+  result += "<br>\r\n";
+  result += "<br>\r\n";
+  result += "<a href='/help/'>Go to the home/help page</a>\r\n";
+  result += "<script>\r\n";
+
+  result += "function clearMessage() {\r\n";
+  result += "  document.getElementById(\"sendMessage\").innerHTML = \"\";\r\n";
+  result += "}\r\n";
+
+  result += "  function checkNumber(component, messageId, message) {\r\n";
+  result += "  //var validCharacterString = \"0123456789-.\";\r\n";
+  result += "  var valid = false;\r\n";
+  result += "    if ((component.value >= Number(component.getAttribute(\"min\"))) && (component.value <= Number(component.getAttribute(\"max\")))) {\r\n";
+  result += "        valid = true;\r\n";
+  result += "    }\r\n";
+  result += "    if (valid) {\r\n";
+  result += "      document.getElementById(messageId).innerHTML = \"\";\r\n";
+  result += "    }\r\n";
+  result += "    else {\r\n";
+  result += "      document.getElementById(messageId).innerHTML = message;\r\n";
+  result += "      component.value = component.getAttribute(\"max\");\r\n";
+  result += "    }\r\n";
+  result += "    return valid;\r\n";
+  result += "  }\r\n";
+  result += "\r\n";
+
+  result += "  function displaySpinSetting() {\r\n";
+  result += "    var spinMode = \"\"\r\n";
+  result += "    var ele = document.getElementsByName(\"spin\") || [];\r\n";
+  result += "    for(i = 0; i < ele.length; i++) {\r\n";
+  result += "      if(ele[i].checked) {\r\n";
+  result += "        spinMode = ele[i].value;\r\n";
+  result += "      }\r\n";
+  result += "    }\r\n";
+  result += "    if (spinMode == \"independent\") {\r\n";
+  result += "        document.getElementById(\"spinSettingSpeed\").style.display=\"block\";\r\n";
+  result += "        document.getElementById(\"spinSettingCode\").style.display=\"none\";\r\n";
+  result += "    }\r\n";
+  result += "    else {\r\n";
+  result += "        document.getElementById(\"spinSettingSpeed\").style.display=\"none\";\r\n";
+  result += "        document.getElementById(\"spinSettingCode\").style.display=\"block\";\r\n";
+  result += "    }\r\n";
+  result += "    if (spinMode == \"stop\") {\r\n";
+  result += "        document.getElementById(\"spinSettingSpeed\").style.display=\"none\";\r\n";
+  result += "        document.getElementById(\"spinSettingCode\").style.display=\"none\";\r\n";
+  result += "    };\r\n";
+  result += "}\r\n";
+
+  result += "  function cancelSettings() {\r\n";
+  result += "    window.location.reload();\r\n";
+  result += "  }\r\n";
+  result += "  function sendData(data) {\r\n";
+  result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
+  result += "    xhr.open(\"POST\", \"/spinSettings/\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    //xhr.setRequestHeader(\"Content-Type\", \"application/json\");\r\n";
+  result += "      document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
+  result += "      xhr.onreadystatechange = function() { // Call a function when the state changes.\r\n";
+  result += "        var myResponseText = \"\";\r\n";
+  result += "        if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {\r\n";
+  result += "          myResponseText = this.responseText || \"\";\r\n";
+  result += "        }\r\n";
+  result += "        if (this.readyState === XMLHttpRequest.DONE && this.status !== 200) {\r\n";
+  result += "          myResponseText = this.statusText || \"\";\r\n";
+  result += "        }\r\n";
+  result += "        document.getElementById(\"sendMessage\").innerHTML = myResponseText;\r\n";
+  result += "      }\r\n";
+  //result += "    }\r\n";
+  result += "    xhr.send(data);\r\n";
+  result += "  }\r\n";
+  result += "\r\n";
+  result += "  function saveSpinSetting() {\r\n";
+  result += "    var ele = document.getElementsByName(\"spin\");\r\n";
+  result += "    var spinmode = \"\"\r\n";
+  result += "    for(i = 0; i < ele.length; i++) {\r\n";
+  result += "      if(ele[i].checked) {\r\n";
+  result += "        spinMode = ele[i].value;\r\n";
+  result += "      }\r\n";
+  result += "    }\r\n";
+  result += "    var roleModelSpeed = document.getElementsByName(\"roleModelSpeed\")[0].value || \"\";\r\n";
+  result += "    var roleModelCode = document.getElementsByName(\"roleModelCode\")[0].value || \"\";\r\n";
+  result += "    var params = \"name=spin\" + \"&spinMode=\" + spinMode + \"&roleModelSpeed=\" + roleModelSpeed + \"&roleModelCode=\" + roleModelCode;\r\n";
+  result += "    sendData(params);\r\n";
+  result += "  }\r\n";
+  result += "displaySpinSetting();\r\n";
+  result += "</script>\r\n";
+
+  result += "\r\n";
   result += "</body>\r\n";
   result += "</html>\r\n";
   server.sendHeader("Cache-Control", "no-cache");
@@ -352,6 +696,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "        sendData(params);\r\n";
   result += "  }\r\n";
   result += "\r\n";
+  /*
   result += "  function saveTargetServerData(content) {\r\n";
   result += "        var children = content.parentNode.childNodes;\r\n";
   result += "        var allowSendingData = \"\";\r\n";
@@ -384,6 +729,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "        sendData(params);\r\n";
   result += "    }\r\n";
   result += "\r\n";
+  */
   result += "  function saveTargetServer(content) {\r\n";
   result += "        var children = content.parentNode.childNodes;\r\n";
   result += "        var targetServer = \"\";\r\n";
@@ -405,6 +751,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "\r\n";
   result += "</script>\r\n";
   result += "\r\n";
+  /*
   result += "<script>\r\n";
   result += "function loadWiFiNetworkList() {\r\n";
   result += "  var xhttp = new XMLHttpRequest();\r\n";
@@ -438,6 +785,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "}\r\n";
   result += "</script>\r\n";
   result += "\r\n";
+  */
   result += "<script>\r\n";
   result += "function displaySettings() {\r\n";
   result += "var ele = document.getElementsByName('settings');\r\n";
@@ -816,7 +1164,9 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<br><br><br>\r\n";
   result += "<a href='/help/'>help</a> begin/help scherm\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/device/'>Model instellingen</a> WiFi modus, Server instellingen\r\n";
+  result += "<a href='/spin/'>Model draai instellingen</a> Geeft een snelheid of koppel aan een echte molen\r\n";
+  result += "<br><br>\r\n";
+  result += "<a href='/device/'>Model opstart instellingen</a> WiFi modus, Server instellingen\r\n";
   result += "<br><br>\r\n";
   result += "<a href='/wifi/'>WiFi</a> instellingen om het Model te koppelen aan WiFi\r\n";
   result += "<br><br>\r\n";
@@ -945,7 +1295,11 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   result += "<br>\r\n";
   result += "<div id=\"device\">\r\n";
+
   result += "    <br>\r\n";
+  result += "    <br>\r\n";
+  result += "    <br>\r\n";
+
   result += "    Set de  WiFi start modus in <input id=\"startWiFiMode\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
   result += pSettings->getFactoryStartModeWiFi();
   result += "\" value=\"reset\">\r\n";
@@ -1065,14 +1419,18 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "  function saveDevice(content) {\r\n";
   result += "        var children = content.parentNode.childNodes;\r\n";
   result += "        var startWiFiMode = \"\";\r\n";
+  result += "        var roleModel = \"\";\r\n";
   result += "        for (var i = 0; i < children.length; i++) {\r\n";
   result += "            if (children[i].name == \"startWiFiMode\") {\r\n";
   result += "                if (children[i].checked == true) {\r\n";
   result += "                    startWiFiMode = children[i].value || true;\r\n";
   result += "                }\r\n";
   result += "            }\r\n";
+  result += "            if (children[i].name == \"roleModel\") {\r\n";
+  result += "                roleModel = children[i].value || \"\";\r\n";
+  result += "            }\r\n";
   result += "        }\r\n";
-  result += "        var params = \"name=device\" + \"&startWiFiMode=\" + startWiFiMode;\r\n";
+  result += "        var params = \"name=device\" + \"&startWiFiMode=\" + startWiFiMode + \"&roleModel=\" + encodeURIComponent(roleModel);\r\n";
   result += "        sendData(params);\r\n";
   result += "  }\r\n";
   result += "\r\n";
@@ -1097,6 +1455,7 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "\r\n";
   result += "</script>\r\n";
   result += "\r\n";
+  /*
   result += "<script>\r\n";
   result += "function loadWiFiNetworkList() {\r\n";
   result += "  var xhttp = new XMLHttpRequest();\r\n";
@@ -1110,6 +1469,7 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "}\r\n";
   result += "</script>\r\n";
   result += "\r\n";
+  */
   result += "<script>\r\n";
   result += "function displaySettings() {\r\n";
   result += "var ele = document.getElementsByName('settings');\r\n";
