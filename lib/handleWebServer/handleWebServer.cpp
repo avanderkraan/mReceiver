@@ -233,9 +233,11 @@ void spin_nl(ESP8266WebServer &server, Settings * pSettings)
   {
     result += "<a href=\"";
     result += pSettings->getTargetServer();
+    result += "/codes/?lang=nl";
     result += "\" target=\"_blank\">\r\n";
   }
   result += pSettings->getTargetServer();
+  result += "/codes/?lang=nl";
   if (WiFi.getMode() == WIFI_STA)
   {
     result += "</a>\r\n";
@@ -404,9 +406,11 @@ void spin(ESP8266WebServer &server, Settings * pSettings)
   {
     result += "<a href=\"";
     result += pSettings->getTargetServer();
+    result += "/codes/?lang=en";
     result += "\" target=\"_blank\">\r\n";
   }
   result += pSettings->getTargetServer();
+  result += "/codes/?lang=en";
   if (WiFi.getMode() == WIFI_STA)
   {
     result += "</a>\r\n";
