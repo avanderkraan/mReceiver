@@ -16,7 +16,7 @@ private:
   /* 4 bytes to store, version of this firmware */
   uint8_t major = 0;   // max 2^8 = 256
   uint8_t minor = 1;   // max 2^8 = 256
-  uint16_t patch = 5;  // max 2^16 = 65536
+  uint16_t patch = 4;  // max 2^16 = 65536
 
   /* start as Access Point or as Network client */
   bool startAsAccessPoint = false;
@@ -28,9 +28,9 @@ private:
   uint16_t SEND_PERIOD = 5000;
 
   /* target server, max size = 32 */
-  String targetServer = "http://www.draaiendemolens.nl";
+  String targetServer = "http://meandmy.info";
   /* factoryTargetServer */
-  String factoryTargetServer = "http://www.draaiendemolens.nl";
+  String factoryTargetServer = "http://meandmy.info";
 
   /* target port */
   uint16_t targetPort = 80;
@@ -52,7 +52,7 @@ private:
   uint16_t addressOffset = 0;
 
   /* check for first saved initialization */
-  const uint8_t INITCHECK = 62;
+  const uint8_t INITCHECK = 63;
 
   /* 1 byte to store, holds check for first initialization */
   uint8_t initNumber = 0;
@@ -81,6 +81,18 @@ private:
   /* factoryRoleModel, this is where the model gets the data from, max size = 32 */
   String factoryRoleModel = "None";  // None means no roleModel defined
 
+  /* motor properties */
+  int16_t stepsPerRevolution = 4076; // change this in the database to fit the number of steps per revolution
+  int16_t maxSpeed = 1000;           // each motortype has its own maximum speed
+  int8_t direction = 1;              // 1 or -1; some motors are wired reversed
+  uint8_t motorInterfaceType = 8;    // AccelStepper::HALF4WIRE;
+  /* factory settings for motor_properties */
+  int16_t factoryStepsPerRevolution = 4076; // change this in the database to fit the number of steps per revolution
+  int16_t factoryMaxSpeed = 1000;           // each motortype has its own maximum speed
+  int8_t factoryDirection = 1;              // 1 or -1; some motors are wired reversed
+  uint8_t factoryMotorInterfaceType = 8;    // AccelStepper::HALF4WIRE;
+
+
 public:
   Settings()
   {
@@ -94,7 +106,11 @@ public:
                         sizeof(this->targetPort) + 
                         17 +                  // max size of targetPath + 1
                         33 +                  // max size roleModel + 1
-                        37;                  // MAX_DEVICEKEY + 1
+                        //sizeof(this->stepsPerRevolution) +
+                        //sizeof(this->maxSpeed) +
+                        //sizeof(this->direction) +
+                        //sizeof(this->motorInterfaceType) +
+                        37;                   // MAX_DEVICEKEY + 1
 
     //this->initSettings(); // is called through the browser
     /* set new address offset */
@@ -198,6 +214,45 @@ public:
   /* set roleModel */
   void setRoleModel(String roleModel);
 
+  /* get factory setting for stepsPerRevolution */
+  int16_t getFactoryStepsPerRevolution();
+
+  /* get factory setting for the motors maximum speed */
+  int16_t getFactoryMaxSpeed();
+
+  /* get factory setting for the motor direction */
+  int8_t getFactoryDirection();
+
+  /* get factory setting for the motor interface type (AccelStepper) */
+  uint8_t getFactoryMotorInterfaceType();
+
+  /* get setting for stepsPerRevolution */
+  int16_t getStepsPerRevolution();
+
+  /* get setting for the motors maximum speed */
+  int16_t getMaxSpeed();
+
+  /* get setting for the motor direction */
+  int8_t getDirection();
+
+  /* get setting for the motor interface type (AccelStepper) */
+  uint8_t getMotorInterfaceType();
+
+  /* set setting for stepsPerRevolution */
+  void setStepsPerRevolution(int16_t stepsPerRevolution);
+
+  /* set setting for the motors maximum speed */
+  void setMaxSpeed(uint16_t maxSpeed);
+
+  /* set setting for the motor direction */
+  void setDirection(int8_t direction);
+
+  /* set setting for the motor interface type (AccelStepper) */
+  void setMotorInterfaceType(uint8_t motorInterfaceType);
+
+  /* saves settings for motor properties */
+  uint16_t saveMotorSettings();
+
   /* EEPROM Offset Address, for use in other functions or classes */
   uint16_t getOffsetAddress();
 
@@ -225,5 +280,8 @@ public:
 
   /* network station last known IP address, will not be saved */
   String getLastNetworkIP();
+
+  /* debug */
+  String getMemoryContent(uint16_t start, uint16_t end);
 };
 #endif
