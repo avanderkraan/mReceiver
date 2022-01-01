@@ -380,7 +380,7 @@ void mydebug() {
   Serial.print("Chip Size: ");
   Serial.println(ESP.getFlashChipSize());
  
-  Serial.print("Chip dd: ");
+  Serial.print("Chip Speed: ");
   Serial.println(ESP.getFlashChipSpeed());
  
   Serial.print("Chip Mode: ");
@@ -1036,7 +1036,21 @@ void processServerData(String responseData) {
 
   String rph = getValueFromJSON("rph", responseData);
   
-  
+  String checkMotorProperties = getValueFromJSON("mp", responseData);
+  if (checkMotorProperties != "")
+  {
+    String myMaxStepsPerRevolution = getValueFromJSON("spr", responseData);
+    String myMaxSpeed = getValueFromJSON("ms", responseData);
+    String myDirection = getValueFromJSON("d", responseData);
+    String myMotorInterfaceType = getValueFromJSON("mit", responseData);
+
+    pSettings->setStepsPerRevolution((uint16_t)myMaxStepsPerRevolution.toInt());
+    pSettings->setMaxSpeed((uint16_t)myMaxSpeed.toInt());
+    pSettings->setDirection((int8_t)myDirection.toInt());
+    pSettings->setMotorInterfaceType((uint8_t)myMotorInterfaceType.toInt());
+
+    pSettings->saveMotorSettings();
+  }
   // TODO: could be used on a display:
   //String name = getValueFromJSON("name", responseData);
   //String message = getValueFromJSON("message", responseData);
@@ -1204,13 +1218,16 @@ void loop()
   // For handleHTTPClient
   if (WiFi.getMode() == WIFI_STA)
   {
-    /* send data to target server using ESP8266HTTPClient */
-    if (millis() - lastSendMillis > pSettings->getSEND_PERIOD())
+    if (pSettings->getRoleModel() != INDEPENDENT)
     {
-      if ((aRequest.readyState() == 0) || (aRequest.readyState() == 4)) {
-          sendDataToTarget(&aRequest, wifiClient, pSettings, String(WiFi.macAddress()));
+      /* send data to target server using ESP8266HTTPClient */
+      if (millis() - lastSendMillis > pSettings->getSEND_PERIOD())
+      {
+        if ((aRequest.readyState() == 0) || (aRequest.readyState() == 4)) {
+            sendDataToTarget(&aRequest, wifiClient, pSettings, String(WiFi.macAddress()));
+        }
+        lastSendMillis = millis();
       }
-      lastSendMillis = millis();
     }
     String response = getAsyncResponse(&aRequest);
     if (response != "") 

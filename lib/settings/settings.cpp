@@ -219,7 +219,7 @@ uint16_t Settings::saveSettings()
   strcpy(myRoleModel, this->roleModel.c_str());
   EEPROM.put(address, myRoleModel);
   address += 33;
-/*
+
   EEPROM.put(address, this->stepsPerRevolution);
   address += sizeof(this->stepsPerRevolution);
   
@@ -231,7 +231,7 @@ uint16_t Settings::saveSettings()
   
   EEPROM.put(address, this->motorInterfaceType);
   address += sizeof(this->motorInterfaceType);
-*/
+
   char myDeviceKey[37];  // one more for the null character
   strcpy(myDeviceKey, this->deviceKey.c_str());
   EEPROM.put(address, myDeviceKey);
@@ -345,7 +345,7 @@ uint16_t Settings::initSettings()
   strcpy(myFactoryRoleModel, this->factoryRoleModel.c_str());
   EEPROM.put(address, myFactoryRoleModel);
   address += 33;
-/*
+
   EEPROM.put(address, this->factoryStepsPerRevolution);
   address += sizeof(this->factoryStepsPerRevolution);
   
@@ -357,7 +357,7 @@ uint16_t Settings::initSettings()
   
   EEPROM.put(address, this->factoryMotorInterfaceType);
   address += sizeof(this->factoryMotorInterfaceType);
-*/
+
   //uint8_t myMaxDeviceKey = sizeof(this->deviceKey);
   char myDeviceKey[37];  // one more for the null character
   strcpy(myDeviceKey, this->factoryDeviceKey.c_str());
@@ -416,7 +416,7 @@ uint16_t Settings::getSettings()
   EEPROM.get(address, myRoleModel);
   this->roleModel = String(myRoleModel);
   address += 33;
-/*
+
   EEPROM.get(address, this->stepsPerRevolution);
   address += sizeof(this->stepsPerRevolution);
   
@@ -428,7 +428,7 @@ uint16_t Settings::getSettings()
   
   EEPROM.get(address, this->motorInterfaceType);
   address += sizeof(this->motorInterfaceType);
-*/
+
   //uint8_t myMaxDeviceKey = sizeof(this->deviceKey);
   char mydeviceKey[37];
   EEPROM.get(address, mydeviceKey);

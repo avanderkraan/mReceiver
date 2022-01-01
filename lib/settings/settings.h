@@ -52,7 +52,7 @@ private:
   uint16_t addressOffset = 0;
 
   /* check for first saved initialization */
-  const uint8_t INITCHECK = 63;
+  const uint8_t INITCHECK = 64;
 
   /* 1 byte to store, holds check for first initialization */
   uint8_t initNumber = 0;
@@ -106,10 +106,10 @@ public:
                         sizeof(this->targetPort) + 
                         17 +                  // max size of targetPath + 1
                         33 +                  // max size roleModel + 1
-                        //sizeof(this->stepsPerRevolution) +
-                        //sizeof(this->maxSpeed) +
-                        //sizeof(this->direction) +
-                        //sizeof(this->motorInterfaceType) +
+                        sizeof(this->stepsPerRevolution) +
+                        sizeof(this->maxSpeed) +
+                        sizeof(this->direction) +
+                        sizeof(this->motorInterfaceType) +
                         37;                   // MAX_DEVICEKEY + 1
 
     //this->initSettings(); // is called through the browser
