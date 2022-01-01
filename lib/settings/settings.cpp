@@ -52,6 +52,46 @@ void Settings::setRoleModel(String roleModel)
   this->saveConfigurationSettings();
 }
 
+int16_t Settings::getFactoryStepsPerRevolution()
+{
+  return this->factoryStepsPerRevolution;
+}
+
+int16_t Settings::getFactoryMaxSpeed()
+{
+  return this->factoryMaxSpeed;
+}
+
+int8_t Settings::getFactoryDirection()
+{
+  return this->factoryMaxSpeed;
+}
+
+uint8_t Settings::getFactoryMotorInterfaceType()
+{
+  return this->factoryMotorInterfaceType;
+}
+
+void Settings::setStepsPerRevolution(int16_t stepsPerRevolution)
+{
+  this->stepsPerRevolution = stepsPerRevolution;
+}
+
+void Settings::setMaxSpeed(uint16_t maxSpeed)
+{
+  this->maxSpeed = maxSpeed;
+}
+
+void Settings::setDirection(int8_t direction)
+{
+  this->direction = direction;
+}
+
+void Settings::setMotorInterfaceType(uint8_t motorInterfaceType)
+{
+  this->motorInterfaceType = motorInterfaceType;
+}
+
 uint8_t Settings::atoi8_t(String s) 
 {
     uint8_t i, n;
@@ -85,10 +125,22 @@ uint16_t Settings::setupEEPROM()
 {
   // It seems to help preventing ESPerror messages with mode(3,6) when using a delay 
   delay(this->WAIT_PERIOD);
+
   if (!this->isInitialized())
   {
+    // set settings as initialized
     this->initNumber = this->INITCHECK;
-    return this->saveSettings();
+    // and save settings
+    this->saveSettings();
+    // erase everything else in EEPROM, (e.g. WiFiSettings)
+    delay(this->WAIT_PERIOD);
+    EEPROM.begin(this->MAX_EEPROM_SIZE);
+    for (uint16_t i = this->getOffsetAddress(); i < this->MAX_EEPROM_SIZE; i++) {
+      EEPROM.write(i, 0xff);
+    }
+    EEPROM.commit();    // with success it will return true
+    EEPROM.end();  // release RAM copy of EEPROM content
+    delay(this->WAIT_PERIOD);
   }
   delay(this->WAIT_PERIOD);
   return this->getSettings();
@@ -111,6 +163,8 @@ uint16_t Settings::setupUpdatedFirmware()
     address += sizeof(this->minor);
     EEPROM.put(address, this->patch);
     address += sizeof(this->patch);
+
+    EEPROM.commit();
     EEPROM.end();  // release RAM copy of EEPROM content
     
     delay(this->WAIT_PERIOD);
@@ -165,7 +219,19 @@ uint16_t Settings::saveSettings()
   strcpy(myRoleModel, this->roleModel.c_str());
   EEPROM.put(address, myRoleModel);
   address += 33;
-
+/*
+  EEPROM.put(address, this->stepsPerRevolution);
+  address += sizeof(this->stepsPerRevolution);
+  
+  EEPROM.put(address, this->maxSpeed);
+  address += sizeof(this->maxSpeed);
+  
+  EEPROM.put(address, this->direction);
+  address += sizeof(this->direction);
+  
+  EEPROM.put(address, this->motorInterfaceType);
+  address += sizeof(this->motorInterfaceType);
+*/
   char myDeviceKey[37];  // one more for the null character
   strcpy(myDeviceKey, this->deviceKey.c_str());
   EEPROM.put(address, myDeviceKey);
@@ -279,7 +345,19 @@ uint16_t Settings::initSettings()
   strcpy(myFactoryRoleModel, this->factoryRoleModel.c_str());
   EEPROM.put(address, myFactoryRoleModel);
   address += 33;
-
+/*
+  EEPROM.put(address, this->factoryStepsPerRevolution);
+  address += sizeof(this->factoryStepsPerRevolution);
+  
+  EEPROM.put(address, this->factoryMaxSpeed);
+  address += sizeof(this->factoryMaxSpeed);
+  
+  EEPROM.put(address, this->factoryDirection);
+  address += sizeof(this->factoryDirection);
+  
+  EEPROM.put(address, this->factoryMotorInterfaceType);
+  address += sizeof(this->factoryMotorInterfaceType);
+*/
   //uint8_t myMaxDeviceKey = sizeof(this->deviceKey);
   char myDeviceKey[37];  // one more for the null character
   strcpy(myDeviceKey, this->factoryDeviceKey.c_str());
@@ -338,7 +416,19 @@ uint16_t Settings::getSettings()
   EEPROM.get(address, myRoleModel);
   this->roleModel = String(myRoleModel);
   address += 33;
-
+/*
+  EEPROM.get(address, this->stepsPerRevolution);
+  address += sizeof(this->stepsPerRevolution);
+  
+  EEPROM.get(address, this->maxSpeed);
+  address += sizeof(this->maxSpeed);
+  
+  EEPROM.get(address, this->direction);
+  address += sizeof(this->direction);
+  
+  EEPROM.get(address, this->motorInterfaceType);
+  address += sizeof(this->motorInterfaceType);
+*/
   //uint8_t myMaxDeviceKey = sizeof(this->deviceKey);
   char mydeviceKey[37];
   EEPROM.get(address, mydeviceKey);
@@ -410,6 +500,20 @@ uint16_t Settings::saveConfigurationSettings()
   address += 33;
 
   /*
+  all values about motor comes from the database and not through configuration settings
+  EEPROM.put(address, this->stepsPerRevolution);
+  address += sizeof(this->stepsPerRevolution);
+  
+  EEPROM.put(address, this->maxSpeed);
+  address += sizeof(this->maxSpeed);
+  
+  EEPROM.put(address, this->direction);
+  address += sizeof(this->direction);
+  
+  EEPROM.put(address, this->motorInterfaceType);
+  address += sizeof(this->motorInterfaceType);
+  */
+  /*
   //char check_myDeviceKey[37];  // one more for the null character
   //EEPROM.get(address, check_myDeviceKey);
   char myDeviceKey[37];  // one more for the null character
@@ -428,6 +532,54 @@ uint16_t Settings::saveConfigurationSettings()
 
   return address - firstAddress;
 }
+
+uint16_t Settings::saveMotorSettings()
+{
+  // The function EEPROM.put() uses EEPROM.update() to perform the write, so does not rewrites the value if it didn't change.
+  // It seems to help preventing ESPerror messages with mode(3,6) when using a delay 
+  delay(this->WAIT_PERIOD);
+
+  uint16_t firstAddress = this->address;
+  uint16_t address = this->address;
+ 
+  //EEPROM.begin(this->storageSize);
+  EEPROM.begin(this->MAX_EEPROM_SIZE);
+
+  //EEPROM.put(address, this->initNumber);
+  address += sizeof(this->initNumber);
+  //EEPROM.put(address, this->version);
+  address += sizeof(this->major);
+  address += sizeof(this->minor);
+  address += sizeof(this->patch);
+  address += 3;  // language
+  address += sizeof(this->startAsAccessPoint);
+  address += 33;  // targetServer
+  address += sizeof(this->targetPort);
+  address += 17;  // targetPath
+  address += 33;  // roleModel
+
+  EEPROM.put(address, this->stepsPerRevolution);
+  address += sizeof(this->stepsPerRevolution);
+  
+  EEPROM.put(address, this->maxSpeed);
+  address += sizeof(this->maxSpeed);
+  
+  EEPROM.put(address, this->direction);
+  address += sizeof(this->direction);
+  
+  EEPROM.put(address, this->motorInterfaceType);
+  address += sizeof(this->motorInterfaceType);
+ 
+//  address += 37; // deviceKey
+
+  EEPROM.commit();    // with success it will return true
+  EEPROM.end();       // release RAM copy of EEPROM content
+
+  delay(this->WAIT_PERIOD);
+
+  return address - firstAddress;  
+}
+
 
 uint16_t Settings::getOffsetAddress()
 {
@@ -529,4 +681,19 @@ void Settings::setLastNetworkIP(String lastNetworkIP)
 String Settings::getLastNetworkIP()
 {
   return this->lastNetworkIP;
+}
+
+String Settings::getMemoryContent(uint16_t start, uint16_t end)
+{
+  // It seems to help preventing ESPerror messages with mode(3,6) when using a delay 
+  delay(this->WAIT_PERIOD);
+  String content;
+  EEPROM.begin(this->MAX_EEPROM_SIZE);
+  for (uint16_t i = start; i < end; i++)
+  {
+    content += char(EEPROM.read(0x0F + i));
+  }
+  EEPROM.end();
+  delay(this->WAIT_PERIOD);
+  return content;
 }

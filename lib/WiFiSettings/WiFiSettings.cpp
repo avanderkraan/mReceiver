@@ -92,7 +92,7 @@ bool WiFiSettings::getStorageSizeIsAvailable()
     return this->storageSizeIsAvailable;
 }
 
-bool WiFiSettings::eraseSettings(uint16 startAddress, uint size) {
+bool WiFiSettings::eraseSettings(uint16_t startAddress, uint16_t size) {
   if (this->getStorageSizeIsAvailable())
   {
     uint16_t lastAddress = startAddress + size;

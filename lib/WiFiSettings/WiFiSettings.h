@@ -54,7 +54,8 @@ public:
       this->address = pSettings->getOffsetAddress();
       
       if (! this->isInitialized()) {
-        this->setAccessPointSSID(String("ESP-" + WiFi.macAddress()));
+        //this->setAccessPointSSID(String("ESP-" + WiFi.macAddress()));
+        this->setAccessPointSSID(String("ESP-" + WiFi.softAPmacAddress()));
         this->setAccessPointPassword(this->passwordAccessPoint);
         this->saveAuthorizationAccessPoint();
       }
@@ -122,7 +123,7 @@ private:
   bool isInitialized();
 
   /* does the erase of EEPROM addresses */
-  bool eraseSettings(uint16 startAddress, uint lastAddress);
+  bool eraseSettings(uint16_t startAddress, uint16_t lastAddress);
 
 public:
   /* Used in this class program to check the availablity of storage space */
