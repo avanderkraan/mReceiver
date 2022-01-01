@@ -13,20 +13,21 @@
 #include "WiFiSettings.h"
 #include <AccelStepper.h>
 
-// stepsPerRevolution for your motor 28BYJ-48 is 2038 for FULLxWIRE
-const int16_t stepsPerRevolution = 4076;  // change this to fit the number of steps per revolution
-
 const int motorPin1 = D0;   // IN1
 const int motorPin2 = D5;   // IN2
 const int motorPin3 = D6;   // IN3
 const int motorPin4 = D7;   // IN4
 
-const uint8_t MAX_CPM = 90; //255;
-const int16_t MAX_SPEED = 1000;
+// stepsPerrevolution, maxSpeed, direction, motorInterfaceType are coming from settings/database
+// stepsPerRevolution for your motor 28BYJ-48 is 2038 for FULLxWIRE
+int16_t stepsPerRevolution = 4076;  // change this to fit the number of steps per revolution
+int16_t maxSpeed = 1000;
+int8_t direction = 1;    // 1 or -1, some motors are wired reversed
+uint8_t motorInterfaceType = AccelStepper::HALF4WIRE;
 int16_t motorSpeedStepper = 0;
 int16_t previousMotorSpeedStepper = motorSpeedStepper;
 
-AccelStepper myStepper(AccelStepper::HALF4WIRE, motorPin1, motorPin3, motorPin2, motorPin4);
+AccelStepper myStepper(motorInterfaceType, motorPin1, motorPin3, motorPin2, motorPin4);
 
 // WIFI URL: http://192.168.4.1/ or http://model.local/
 /////////////////////
@@ -954,11 +955,11 @@ void handleSpinSettings()
     {
       if (_spinMode == INDEPENDENT) {
         pSettings->setRoleModel(INDEPENDENT);
-        if (_roleModelSpeed.toInt() * stepsPerRevolution / 60 < MAX_SPEED) {
+        if (_roleModelSpeed.toInt() * stepsPerRevolution / 60 < maxSpeed) {
           motorSpeedStepper = round(_roleModelSpeed.toInt() * stepsPerRevolution / 60);
          }
          else {
-           motorSpeedStepper = MAX_SPEED;
+           motorSpeedStepper = maxSpeed;
          }
       }
       if (_spinMode == "connected")
@@ -1049,11 +1050,11 @@ void processServerData(String responseData) {
   {
     uint16_t speedValue = (uint16_t)rph.toInt();
     // setSpeed is per second, rph is per hour, so divide by 3600
-    if (speedValue * stepsPerRevolution / 3600 < MAX_SPEED) {
+    if (speedValue * stepsPerRevolution / 3600 < maxSpeed) {
        motorSpeedStepper = round(speedValue * stepsPerRevolution / 3600);
     }
     else {
-      motorSpeedStepper = MAX_SPEED;
+      motorSpeedStepper = maxSpeed;
     }
   }
 }
@@ -1083,7 +1084,7 @@ void initHardware()
 
   pinMode(BUTTON, INPUT_PULLUP);
 
-  myStepper.setMaxSpeed(MAX_SPEED);
+  myStepper.setMaxSpeed(maxSpeed);
   myStepper.setSpeed(0);
 
 }
@@ -1236,7 +1237,7 @@ void loop()
   // Stepper motor
   if (motorSpeedStepper > 0) {
 
-    myStepper.setSpeed(-motorSpeedStepper);
+    myStepper.setSpeed(motorSpeedStepper * direction);
   }
   else
   {
