@@ -10,7 +10,7 @@ private:
   /* Maximum size of EEPROM, SPI_FLASH_SEC_SIZE comes from spi_flash.h */
   const uint16_t MAX_EEPROM_SIZE = SPI_FLASH_SEC_SIZE;
 
-  /* wait period in milliseconds, value comes from the Settings class */
+  /* wait period in milliseconds */
   uint32_t WAIT_PERIOD = 0;
 
   /* maximum length of SSID Name string, excluding NULL character */
@@ -44,17 +44,16 @@ public:
   WiFiSettings(Settings * pSettings)
   {
     this->WAIT_PERIOD = pSettings->WAIT_PERIOD;
-    /* Storage for AP and Network SSID, plus AP and Network Password */
+    // Storage for AP and Network SSID, plus AP and Network Password
     this->storageSize = 132;   // including 4 NULL characters in total (1 for each part) 
 
-    /* if there is not enough space on EEPROM, writing will fail and reading will return an empty String */
-    if (pSettings->setOffsetAddress(this->storageSize) == true)  // is there enough space on EEPROM?
+    // if there is not enough space on EEPROM, writing will fail and reading will return an empty String
+    if (pSettings->getWiFiDataAddress() + this->storageSize < this->MAX_EEPROM_SIZE)  // is there enough space on EEPROM?
     {
       this->storageSizeIsAvailable = true;
-      this->address = pSettings->getOffsetAddress();
+      this->address = pSettings->getWiFiDataAddress();
       
-      if (! this->isInitialized()) {
-        //this->setAccessPointSSID(String("ESP-" + WiFi.macAddress()));
+      if (this->isInitialized() == false) {
         this->setAccessPointSSID(String("ESP-" + WiFi.softAPmacAddress()));
         this->setAccessPointPassword(this->passwordAccessPoint);
         this->saveAuthorizationAccessPoint();
@@ -125,7 +124,7 @@ private:
   /* does the erase of EEPROM addresses */
   bool eraseSettings(uint16_t startAddress, uint16_t lastAddress);
 
-public:
+//public:
   /* Used in this class program to check the availablity of storage space */
   bool getStorageSizeIsAvailable();
 

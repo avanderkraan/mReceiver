@@ -2,16 +2,7 @@
 #include "base64.h"
 
 String getSendData(Settings * pSettings, String macAddress) {
-  String result = "{";
-  result += "\"data\": {";
-  result += "\"v\":";        // firmwareVersion
-  result += "\"";
-  result += pSettings->getFirmwareVersion();
-  result += "\",";
-  result += "\"key\":";      // deviceKey
-  result += "\"";
-  result += pSettings->getDeviceKey();
-  result += "\",";
+  String result = "\"data\": {";
   result += "\"mac\":";      // macAddress
   result += "\"";
   result += macAddress;
@@ -21,11 +12,83 @@ String getSendData(Settings * pSettings, String macAddress) {
   result += pSettings->getRoleModel();
   result += "\"";
   result += "}";
-  result += "}\n";  // for the writestream
   return result;
 }
 
-void sendDataToTarget(asyncHTTPrequest* pRequest, WiFiClient wifiClient, Settings * pSettings, String macAddress)
+String getSendInfo(Settings * pSettings, WiFiSettings* pWifiSettings, String macAddress) {
+  String result = "";
+  result += "\"info\": {";
+
+  result += "\"v\":";        // firmwareVersion
+  result += "\"";
+  result += pSettings->getFirmwareVersion();
+  result += "\",";
+
+  result += "\"key\":";      // deviceKey
+  result += "\"";
+  result += pSettings->getDeviceKey();
+  result += "\",";
+
+  result += "\"spr\":";
+  result += "\"";
+  result += pSettings->getStepsPerRevolution();
+  result += "\",";
+
+  result += "\"ms\":";
+  result += "\"";
+  result += pSettings->getMaxSpeed();
+  result += "\",";
+
+  result += "\"d\":";
+  result += "\"";
+  result += pSettings->getDirection();
+  result += "\",";
+
+  result += "\"mit\":";
+  result += "\"";
+  result += pSettings->getMotorInterfaceType();
+  result += "\",";
+
+  result += "\"apssid\":";
+  result += "\"";
+  result += pWifiSettings->readAccessPointSSID();
+  result += "\",";
+
+  result += "\"stssid\":";
+  result += "\"";
+  result += pWifiSettings->readNetworkSSID();
+  result += "\",";
+
+  result += "\"cid\":";
+  result += "\"";
+  result += String(ESP.getFlashChipId());
+  result += "\",";
+ 
+  result += "\"crs\":";
+  result += "\"";
+  result += String(ESP.getFlashChipRealSize());
+  result += "\",";
+ 
+  result += "\"csi\":";
+  result += "\"";
+  result += String(ESP.getFlashChipSize());
+  result += "\",";
+ 
+  result += "\"csp\":";
+  result += "\"";
+  result += String(ESP.getFlashChipSpeed());
+  result += "\",";
+ 
+  result += "\"cm\":";
+  result += "\"";
+  result += String(ESP.getFlashChipMode());
+  result += "\"";
+
+  result += "}";
+  return result;
+}
+
+void sendDataToTarget(asyncHTTPrequest* pRequest, WiFiClient wifiClient, Settings * pSettings, WiFiSettings* pWifiSettings, String macAddress, bool withInfo)
 {
   String targetServer = pSettings->getTargetServer();
   uint16_t port =  pSettings->getTargetPort();
@@ -40,7 +103,15 @@ void sendDataToTarget(asyncHTTPrequest* pRequest, WiFiClient wifiClient, Setting
   String auth = "Basic " + base64::encode(key + ":" + pSettings->getDeviceKey());
   auth.replace("\n","");
 
-  String post_data = getSendData(pSettings, macAddress);
+  String postData = "{";
+  postData += getSendData(pSettings, macAddress);
+  if (withInfo == true) {
+    postData += ",";
+    postData += getSendInfo(pSettings, pWifiSettings, macAddress);
+  }
+  postData += "}";
+
+
   if (pRequest->readyState() == 0 || pRequest->readyState() == 4)
   {
     pRequest->open("POST", url.c_str());
@@ -50,7 +121,7 @@ void sendDataToTarget(asyncHTTPrequest* pRequest, WiFiClient wifiClient, Setting
     pRequest->setReqHeader("Pragma", "no-cache");
     pRequest->setReqHeader("WWW-Authenticate", "Basic realm=\"model\", charset=\"UTF-8\"");
     pRequest->setReqHeader("Authorization", auth.c_str());
-    pRequest->send(post_data);
+    pRequest->send(postData);
   }
 }
 

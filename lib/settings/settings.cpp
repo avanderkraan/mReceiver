@@ -52,29 +52,29 @@ void Settings::setRoleModel(String roleModel)
   this->saveConfigurationSettings();
 }
 
-int16_t Settings::getFactoryStepsPerRevolution()
+uint16_t Settings::getFactoryStepsPerRevolution()
 {
   return this->factoryStepsPerRevolution;
 }
 
-int16_t Settings::getFactoryMaxSpeed()
+uint16_t Settings::getStepsPerRevolution()
 {
-  return this->factoryMaxSpeed;
+  return this->stepsPerRevolution;
 }
 
-int8_t Settings::getFactoryDirection()
-{
-  return this->factoryMaxSpeed;
-}
-
-uint8_t Settings::getFactoryMotorInterfaceType()
-{
-  return this->factoryMotorInterfaceType;
-}
-
-void Settings::setStepsPerRevolution(int16_t stepsPerRevolution)
+void Settings::setStepsPerRevolution(uint16_t stepsPerRevolution)
 {
   this->stepsPerRevolution = stepsPerRevolution;
+}
+
+uint16_t Settings::getFactoryMaxSpeed()
+{
+  return this->factoryMaxSpeed;
+}
+
+uint16_t Settings::getMaxSpeed()
+{
+  return this->maxSpeed;
 }
 
 void Settings::setMaxSpeed(uint16_t maxSpeed)
@@ -82,9 +82,29 @@ void Settings::setMaxSpeed(uint16_t maxSpeed)
   this->maxSpeed = maxSpeed;
 }
 
+int8_t Settings::getFactoryDirection()
+{
+  return this->factoryDirection;
+}
+
+int8_t Settings::getDirection()
+{
+  return this->direction;
+}
+
 void Settings::setDirection(int8_t direction)
 {
   this->direction = direction;
+}
+
+uint8_t Settings::getFactoryMotorInterfaceType()
+{
+  return this->factoryMotorInterfaceType;
+}
+
+uint8_t Settings::getMotorInterfaceType()
+{
+  return this->motorInterfaceType;
 }
 
 void Settings::setMotorInterfaceType(uint8_t motorInterfaceType)
@@ -125,17 +145,16 @@ uint16_t Settings::setupEEPROM()
 {
   // It seems to help preventing ESPerror messages with mode(3,6) when using a delay 
   delay(this->WAIT_PERIOD);
-
-  if (!this->isInitialized())
+  if (this->isInitialized() == true)
   {
     // set settings as initialized
     this->initNumber = this->INITCHECK;
     // and save settings
     this->saveSettings();
-    // erase everything else in EEPROM, (e.g. WiFiSettings)
+    // erase everything else in EEPROM until wifiDataSettings
     delay(this->WAIT_PERIOD);
     EEPROM.begin(this->MAX_EEPROM_SIZE);
-    for (uint16_t i = this->getOffsetAddress(); i < this->MAX_EEPROM_SIZE; i++) {
+    for (uint16_t i = this->storageSize; i < this->wifiDataAddress; i++) {
       EEPROM.write(i, 0xff);
     }
     EEPROM.commit();    // with success it will return true
@@ -279,8 +298,11 @@ bool Settings::isInitialized() {
   EEPROM.end();  // release RAM copy of EEPROM content
 
   delay(this->WAIT_PERIOD);
- 
-  return (this->initNumber == this->INITCHECK);
+  if (this->initNumber == this->INITCHECK)
+  {
+    return false;
+  }
+  return true;
 }
 
 bool Settings::eraseSettings() {
@@ -581,11 +603,12 @@ uint16_t Settings::saveMotorSettings()
 }
 
 
-uint16_t Settings::getOffsetAddress()
+uint16_t Settings::getWiFiDataAddress()
 {
-  return this->addressOffset;
+  return this->wifiDataAddress;
 }
 
+/*
 bool Settings::setOffsetAddress(uint16_t deltaAddress)
 {
   if (this->getOffsetAddress() + deltaAddress > this->MAX_EEPROM_SIZE)
@@ -595,6 +618,7 @@ bool Settings::setOffsetAddress(uint16_t deltaAddress)
   this->addressOffset += deltaAddress;
   return true;
 }
+*/
 
 bool Settings::beginAsAccessPoint()
 {
@@ -691,7 +715,7 @@ String Settings::getMemoryContent(uint16_t start, uint16_t end)
   EEPROM.begin(this->MAX_EEPROM_SIZE);
   for (uint16_t i = start; i < end; i++)
   {
-    content += char(EEPROM.read(0x0F + i));
+    content += char(EEPROM.read(i));
   }
   EEPROM.end();
   delay(this->WAIT_PERIOD);

@@ -28,12 +28,12 @@ private:
   uint16_t SEND_PERIOD = 5000;
 
   /* target server, max size = 32 */
-  String targetServer = "http://meandmy.info";
+  String targetServer = "http://10.0.0.10";
   /* factoryTargetServer */
-  String factoryTargetServer = "http://meandmy.info";
+  String factoryTargetServer = "http://www.draaiendemolens.nl";
 
   /* target port */
-  uint16_t targetPort = 80;
+  uint16_t targetPort = 9090;
   /* factoryTargetPort server */
   uint16_t factoryTargetPort = 80;
 
@@ -49,10 +49,13 @@ private:
   const uint16_t address = 0;
 
   /* first available address for Settings storage, for use in other functions or classes */
-  uint16_t addressOffset = 0;
+  //uint16_t addressOffset = 0;
+
+  /* first address for WiFiData */
+  uint16_t wifiDataAddress = 512;
 
   /* check for first saved initialization */
-  const uint8_t INITCHECK = 64;
+  const uint8_t INITCHECK = 63;
 
   /* 1 byte to store, holds check for first initialization */
   uint8_t initNumber = 0;
@@ -82,13 +85,13 @@ private:
   String factoryRoleModel = "None";  // None means no roleModel defined
 
   /* motor properties */
-  int16_t stepsPerRevolution = 4076; // change this in the database to fit the number of steps per revolution
-  int16_t maxSpeed = 1000;           // each motortype has its own maximum speed
+  uint16_t stepsPerRevolution = 4076; // change this in the database to fit the number of steps per revolution
+  uint16_t maxSpeed = 1000;           // each motortype has its own maximum speed
   int8_t direction = 1;              // 1 or -1; some motors are wired reversed
   uint8_t motorInterfaceType = 8;    // AccelStepper::HALF4WIRE;
   /* factory settings for motor_properties */
-  int16_t factoryStepsPerRevolution = 4076; // change this in the database to fit the number of steps per revolution
-  int16_t factoryMaxSpeed = 1000;           // each motortype has its own maximum speed
+  uint16_t factoryStepsPerRevolution = 4076; // change this in the database to fit the number of steps per revolution
+  uint16_t factoryMaxSpeed = 1000;           // each motortype has its own maximum speed
   int8_t factoryDirection = 1;              // 1 or -1; some motors are wired reversed
   uint8_t factoryMotorInterfaceType = 8;    // AccelStepper::HALF4WIRE;
 
@@ -96,20 +99,20 @@ private:
 public:
   Settings()
   {
-    this->storageSize = sizeof(this->initNumber) + 
-                        sizeof(this->major) + 
-                        sizeof(this->minor) + 
-                        sizeof(this->patch) + 
+    this->storageSize = sizeof(this->initNumber) + // 1
+                        sizeof(this->major) +      // 1
+                        sizeof(this->minor) +      // 1
+                        sizeof(this->patch) +      // 2
                         3 +                   // language (NL) + 1
-                        sizeof(this->startAsAccessPoint) +
+                        sizeof(this->startAsAccessPoint) +  // 1
                         33 +                  // max size targetServer + 1
-                        sizeof(this->targetPort) + 
+                        sizeof(this->targetPort) +          // 2
                         17 +                  // max size of targetPath + 1
                         33 +                  // max size roleModel + 1
-                        sizeof(this->stepsPerRevolution) +
-                        sizeof(this->maxSpeed) +
-                        sizeof(this->direction) +
-                        sizeof(this->motorInterfaceType) +
+                        sizeof(this->stepsPerRevolution) +  // 2
+                        sizeof(this->maxSpeed) +            // 2
+                        sizeof(this->direction) +           // 1
+                        sizeof(this->motorInterfaceType) +  // 1
                         37;                   // MAX_DEVICEKEY + 1
 
     //this->initSettings(); // is called through the browser
@@ -118,7 +121,7 @@ public:
     this->setOffsetAddress(this->storageSize); is the same as:
         this->addressOffset = this->address + this->storageSize;
     */
-    this->addressOffset = this->address + this->storageSize;
+    //this->addressOffset = this->address + this->storageSize;
     this->setupEEPROM();
     this->setupUpdatedFirmware();
   };
@@ -215,10 +218,10 @@ public:
   void setRoleModel(String roleModel);
 
   /* get factory setting for stepsPerRevolution */
-  int16_t getFactoryStepsPerRevolution();
+  uint16_t getFactoryStepsPerRevolution();
 
   /* get factory setting for the motors maximum speed */
-  int16_t getFactoryMaxSpeed();
+  uint16_t getFactoryMaxSpeed();
 
   /* get factory setting for the motor direction */
   int8_t getFactoryDirection();
@@ -227,10 +230,10 @@ public:
   uint8_t getFactoryMotorInterfaceType();
 
   /* get setting for stepsPerRevolution */
-  int16_t getStepsPerRevolution();
+  uint16_t getStepsPerRevolution();
 
   /* get setting for the motors maximum speed */
-  int16_t getMaxSpeed();
+  uint16_t getMaxSpeed();
 
   /* get setting for the motor direction */
   int8_t getDirection();
@@ -239,7 +242,7 @@ public:
   uint8_t getMotorInterfaceType();
 
   /* set setting for stepsPerRevolution */
-  void setStepsPerRevolution(int16_t stepsPerRevolution);
+  void setStepsPerRevolution(uint16_t stepsPerRevolution);
 
   /* set setting for the motors maximum speed */
   void setMaxSpeed(uint16_t maxSpeed);
@@ -254,10 +257,10 @@ public:
   uint16_t saveMotorSettings();
 
   /* EEPROM Offset Address, for use in other functions or classes */
-  uint16_t getOffsetAddress();
+  //uint16_t getOffsetAddress();
 
-  /* EEPROM set new value for Offset Address, for use in other functions or classes */
-  bool setOffsetAddress(uint16_t deltaAddress);
+  /* EEPROM value for wifi data, used in WifiSettings */
+  uint16_t getWiFiDataAddress();
 
   /* returns factory setting beginAs AccessPoint for WiFi start-mode, translated to "ap" or "network" */
   String getFactoryStartModeWiFi();

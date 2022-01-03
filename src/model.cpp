@@ -85,6 +85,8 @@ bool detectUpdateFlag = false;
 // updateSucceeded is true is the update succeeded or if a restart is asked, so a restart can be done
 bool updateSucceeded = false;
 
+// detectInfoRequest is True if info is requested by the server
+bool detectInfoRequest = false;
 
 // Forward declaration
 void setupWiFi();
@@ -1034,23 +1036,34 @@ void processServerData(String responseData) {
     detectUpdateFlag = true;
   }
 
+  String requestForInfo = getValueFromJSON("i", responseData);
+  if (requestForInfo != "")
+  {
+    detectInfoRequest = true;
+  }
   String rph = getValueFromJSON("rph", responseData);
   
-  String checkMotorProperties = getValueFromJSON("mp", responseData);
-  if (checkMotorProperties != "")
-  {
-    String myMaxStepsPerRevolution = getValueFromJSON("spr", responseData);
-    String myMaxSpeed = getValueFromJSON("ms", responseData);
-    String myDirection = getValueFromJSON("d", responseData);
-    String myMotorInterfaceType = getValueFromJSON("mit", responseData);
+  String myMaxStepsPerRevolution = getValueFromJSON("spr", responseData);
+  String myMaxSpeed = getValueFromJSON("ms", responseData);
+  String myDirection = getValueFromJSON("d", responseData);
+  String myMotorInterfaceType = getValueFromJSON("mit", responseData);
 
+  if ((myMaxStepsPerRevolution != "") && (myMaxSpeed != "") && (myDirection != "") && (myMotorInterfaceType != ""))
+  {
     pSettings->setStepsPerRevolution((uint16_t)myMaxStepsPerRevolution.toInt());
     pSettings->setMaxSpeed((uint16_t)myMaxSpeed.toInt());
     pSettings->setDirection((int8_t)myDirection.toInt());
     pSettings->setMotorInterfaceType((uint8_t)myMotorInterfaceType.toInt());
 
     pSettings->saveMotorSettings();
+
+    stepsPerRevolution = pSettings->getStepsPerRevolution();
+    maxSpeed = pSettings->getMaxSpeed();
+    direction = pSettings->getDirection();
+    motorInterfaceType = pSettings->getMotorInterfaceType();
+    AccelStepper myStepper(motorInterfaceType, motorPin1, motorPin3, motorPin2, motorPin4);
   }
+
   // TODO: could be used on a display:
   //String name = getValueFromJSON("name", responseData);
   //String message = getValueFromJSON("message", responseData);
@@ -1215,20 +1228,28 @@ void loop()
   // For ESP8266WebServer
   server.handleClient();
 
+  // debug
+      if (millis() - lastSendMillis > pSettings->getSEND_PERIOD())
+      {
+      //Serial.println(pSettings->getMemoryContent(0,1024));
+      //Serial.println("");
+      //Serial.println(pSettings->getMemoryContent(512, 650));
+      }
   // For handleHTTPClient
   if (WiFi.getMode() == WIFI_STA)
   {
-    if (pSettings->getRoleModel() != INDEPENDENT)
-    {
+    //if (pSettings->getRoleModel() != INDEPENDENT)
+    //{
       /* send data to target server using ESP8266HTTPClient */
       if (millis() - lastSendMillis > pSettings->getSEND_PERIOD())
       {
         if ((aRequest.readyState() == 0) || (aRequest.readyState() == 4)) {
-            sendDataToTarget(&aRequest, wifiClient, pSettings, String(WiFi.macAddress()));
+            sendDataToTarget(&aRequest, wifiClient, pSettings, pWifiSettings, String(WiFi.macAddress()), detectInfoRequest);
+            detectInfoRequest = false;    // reset value so no info will be sent again
         }
         lastSendMillis = millis();
       }
-    }
+    //}
     String response = getAsyncResponse(&aRequest);
     if (response != "") 
     {

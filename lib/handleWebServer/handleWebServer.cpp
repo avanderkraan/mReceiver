@@ -243,7 +243,7 @@ void spin_nl(ESP8266WebServer &server, Settings * pSettings)
     result += "</a>\r\n";
   } 
   result += "<br>\r\n";
-  result += " Code <input type=\"text\" name=\"roleModelCode\" maxlength=\"32\" size=\"33\" placeholder=\"nl_01234\" value=\"";
+  result += " Code <input type=\"text\" name=\"roleModelCode\" maxlength=\"32\" size=\"33\" placeholder=\"01234\" value=\"";
   if (pSettings->getRoleModel() != "independent")
   {
     result += pSettings->getRoleModel();
@@ -416,7 +416,7 @@ void spin(ESP8266WebServer &server, Settings * pSettings)
     result += "</a>\r\n";
   } 
   result += "<br>\r\n";
-  result += " Code <input type=\"text\" name=\"roleModelCode\" maxlength=\"32\" size=\"33\" placeholder=\"nl_01234\" value=\"";
+  result += " Code <input type=\"text\" name=\"roleModelCode\" maxlength=\"32\" size=\"33\" placeholder=\"01234\" value=\"";
   if (pSettings->getRoleModel() != "independent")
   {
     result += pSettings->getRoleModel();
