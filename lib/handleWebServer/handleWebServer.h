@@ -17,8 +17,8 @@ void showSavedSettings_nl(ESP8266WebServer &server, Settings * pSettings);
 void spin(ESP8266WebServer &server, Settings * pSettings);
 void spin_nl(ESP8266WebServer &server, Settings * pSettings);
 /* choose settings for the device and the target server */
-void device(ESP8266WebServer &server, Settings * pSettings);
-void device_nl(ESP8266WebServer &server, Settings * pSettings);
+//void device(ESP8266WebServer &server, Settings * pSettings);
+//void device_nl(ESP8266WebServer &server, Settings * pSettings);
 /* choose wifi connection, (Access Point or Station -todo: get SSID for Station-) */
 void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWifiSettings);
 void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWifiSettings);

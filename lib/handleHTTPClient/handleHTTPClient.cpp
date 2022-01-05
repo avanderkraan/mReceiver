@@ -49,6 +49,7 @@ String getSendInfo(Settings * pSettings, WiFiSettings* pWifiSettings, String mac
   result += pSettings->getMotorInterfaceType();
   result += "\",";
 
+  /*
   result += "\"apssid\":";
   result += "\"";
   result += pWifiSettings->readAccessPointSSID();
@@ -58,7 +59,7 @@ String getSendInfo(Settings * pSettings, WiFiSettings* pWifiSettings, String mac
   result += "\"";
   result += pWifiSettings->readNetworkSSID();
   result += "\",";
-
+*/
   result += "\"cid\":";
   result += "\"";
   result += String(ESP.getFlashChipId());
@@ -110,7 +111,6 @@ void sendDataToTarget(asyncHTTPrequest* pRequest, WiFiClient wifiClient, Setting
     postData += getSendInfo(pSettings, pWifiSettings, macAddress);
   }
   postData += "}";
-
 
   if (pRequest->readyState() == 0 || pRequest->readyState() == 4)
   {

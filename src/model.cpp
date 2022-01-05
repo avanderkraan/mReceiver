@@ -18,17 +18,6 @@ const int motorPin2 = D5;   // IN2
 const int motorPin3 = D6;   // IN3
 const int motorPin4 = D7;   // IN4
 
-// stepsPerrevolution, maxSpeed, direction, motorInterfaceType are coming from settings/database
-// stepsPerRevolution for your motor 28BYJ-48 is 2038 for FULLxWIRE
-int16_t stepsPerRevolution = 4076;  // change this to fit the number of steps per revolution
-int16_t maxSpeed = 1000;
-int8_t direction = 1;    // 1 or -1, some motors are wired reversed
-uint8_t motorInterfaceType = AccelStepper::HALF4WIRE;
-int16_t motorSpeedStepper = 0;
-int16_t previousMotorSpeedStepper = motorSpeedStepper;
-
-AccelStepper myStepper(motorInterfaceType, motorPin1, motorPin3, motorPin2, motorPin4);
-
 // WIFI URL: http://192.168.4.1/ or http://model.local/
 /////////////////////
 // Pin Definitions //
@@ -63,6 +52,17 @@ String INDEPENDENT = "independent"; // means that motor is driven independent of
 
 Settings settings = Settings();
 Settings* pSettings = &settings;
+
+// stepsPerrevolution, maxSpeed, direction, motorInterfaceType are coming from settings/database
+// stepsPerRevolution for your motor 28BYJ-48 is 2038 for FULLxWIRE
+int16_t stepsPerRevolution = pSettings->getStepsPerRevolution();  // 4096 change this to fit the number of steps per revolution
+int16_t maxSpeed = pSettings->getMaxSpeed();  // 1
+int8_t direction = pSettings->getDirection();    // 1 or -1, some motors are wired reversed
+uint8_t motorInterfaceType = pSettings->getMotorInterfaceType(); //AccelStepper::HALF4WIRE;
+int16_t motorSpeedStepper = 0;
+int16_t previousMotorSpeedStepper = motorSpeedStepper;
+
+AccelStepper myStepper = AccelStepper(motorInterfaceType, motorPin1, motorPin3, motorPin2, motorPin4);
 
 //////////////////////
 // WiFi Definitions //
@@ -336,6 +336,7 @@ void handleSpin() {
   }
 }
 
+/*
 void handleDevice() {
   if (pSettings->getLanguage() == "NL")
   {
@@ -346,6 +347,7 @@ void handleDevice() {
     device(server, pSettings);
   }
 }
+*/
 
 void handleSse() {
   sse(server, pSettings, revolutions, viewPulsesPerMinute);
@@ -394,8 +396,29 @@ void mydebug() {
   Serial.print("MAC address: ");
   Serial.println(WiFi.macAddress());
 
+  Serial.print("target server: ");
+  Serial.println(pSettings->getTargetServer());
+
+  Serial.print("target port: ");
+  Serial.println(pSettings->getTargetPort());
+
+  Serial.print("target path: ");
+  Serial.println(pSettings->getFactoryTargetPath());
+
   Serial.print("connected roleModel: ");
   Serial.println(pSettings->getRoleModel());
+
+  Serial.print("motor steps per revolution: ");
+  Serial.println(pSettings->getStepsPerRevolution());
+  
+  Serial.print("motor maximum speed: ");
+  Serial.println(pSettings->getMaxSpeed());
+  
+  Serial.print("motor direction: ");
+  Serial.println(pSettings->getDirection());
+  
+  Serial.print("motor motorInterfaceType: ");
+  Serial.println(pSettings->getMotorInterfaceType());
 
   server.sendHeader("Cache-Control", "no-cache");
   server.sendHeader("Connection", "keep-alive");
@@ -865,15 +888,15 @@ void handleDeviceSettings()
   String result = "";
   String result_nl = "";
 
-  if (server.method() == HTTP_POST)
+  if ((server.method() == HTTP_POST) || (server.method() == HTTP_GET))
   {
     // extract the settings-data and take action
     argumentCounter = server.args();  // if argumentCounter > 0 then saveConfigurationSettings
     String _name = "";
-    String _startWiFiMode = "";
-    String _targetServer = "";
-    String _targetPort = "";
-    String _targetPath = "";
+    String _startWiFiMode = String(pSettings->beginAsAccessPoint());
+    String _targetServer = pSettings->getTargetServer();
+    String _targetPort = String(pSettings->getTargetPort());
+    String _targetPath = pSettings->getTargetPath();
     for (uint8_t i=0; i< server.args(); i++){
       if (server.argName(i) == "name") {
         _name = server.arg(i);
@@ -967,10 +990,15 @@ void handleSpinSettings()
       if (_spinMode == "connected")
       {
         pSettings->setRoleModel(_roleModelCode); 
+        if (WiFi.getMode() == WIFI_AP)
+        {
+          motorSpeedStepper = 0;
+        }
       }
       if (_spinMode == "stop")
       {
         pSettings->setRoleModel("None");
+        motorSpeedStepper = 0;
       }
     }
     if (argumentCounter > 0) {
@@ -1023,6 +1051,7 @@ String getValueFromJSON(String key, String responseData)
 
 void processServerData(String responseData) {
   /* data should come in JSON format */
+  //Serial.println(responseData);
   String proposedUUID = getValueFromJSON("pKey", responseData);
   if ((proposedUUID != "") && (pSettings->getDeviceKey() != proposedUUID))
   {
@@ -1043,25 +1072,28 @@ void processServerData(String responseData) {
   }
   String rph = getValueFromJSON("rph", responseData);
   
-  String myMaxStepsPerRevolution = getValueFromJSON("spr", responseData);
+  String myStepsPerRevolution = getValueFromJSON("spr", responseData);
   String myMaxSpeed = getValueFromJSON("ms", responseData);
   String myDirection = getValueFromJSON("d", responseData);
   String myMotorInterfaceType = getValueFromJSON("mit", responseData);
 
-  if ((myMaxStepsPerRevolution != "") && (myMaxSpeed != "") && (myDirection != "") && (myMotorInterfaceType != ""))
+  if ((myStepsPerRevolution != "") && (myMaxSpeed != "") && (myDirection != "") && (myMotorInterfaceType != ""))
   {
-    pSettings->setStepsPerRevolution((uint16_t)myMaxStepsPerRevolution.toInt());
-    pSettings->setMaxSpeed((uint16_t)myMaxSpeed.toInt());
-    pSettings->setDirection((int8_t)myDirection.toInt());
-    pSettings->setMotorInterfaceType((uint8_t)myMotorInterfaceType.toInt());
+    if ((myStepsPerRevolution != String(pSettings->getStepsPerRevolution())) &&
+        (myMaxSpeed != String(pSettings->getMaxSpeed())) &&
+        (myDirection != String(pSettings->getDirection())) &&
+        (myMotorInterfaceType != String(pSettings->getMotorInterfaceType())) )
+        {
+          pSettings->setStepsPerRevolution((uint16_t)myStepsPerRevolution.toInt());
+          pSettings->setMaxSpeed((uint16_t)myMaxSpeed.toInt());
+          pSettings->setDirection((int8_t)myDirection.toInt());
+          pSettings->setMotorInterfaceType((uint8_t)myMotorInterfaceType.toInt());
 
-    pSettings->saveMotorSettings();
+          pSettings->saveMotorSettings();
+          ESP.restart();
+        }
 
-    stepsPerRevolution = pSettings->getStepsPerRevolution();
-    maxSpeed = pSettings->getMaxSpeed();
-    direction = pSettings->getDirection();
-    motorInterfaceType = pSettings->getMotorInterfaceType();
-    AccelStepper myStepper(motorInterfaceType, motorPin1, motorPin3, motorPin2, motorPin4);
+    //myStepper = AccelStepper(motorInterfaceType, motorPin1, motorPin3, motorPin2, motorPin4);
   }
 
   // TODO: could be used on a display:
@@ -1111,6 +1143,13 @@ void initHardware()
 
   pinMode(BUTTON, INPUT_PULLUP);
 
+  //stepsPerRevolution = pSettings->getStepsPerRevolution();
+  //maxSpeed = pSettings->getMaxSpeed();
+  //direction = pSettings->getDirection();
+  //motorInterfaceType = pSettings->getMotorInterfaceType();
+
+  //myStepper = AccelStepper(motorInterfaceType, motorPin1, motorPin3, motorPin2, motorPin4);
+
   myStepper.setMaxSpeed(maxSpeed);
   myStepper.setSpeed(0);
 
@@ -1127,13 +1166,12 @@ void initServer()
   server.onNotFound(handleHelp);
 
   // interactive pages
-  server.on("/device/", handleDevice);
+  //server.on("/device/", handleDevice);  deprecated as from version 0.2.0
   server.on("/spin/", handleSpin);
   server.on("/wifi/", handleWiFi);
   // handles input from interactive pages
   server.on("/networkssid/", handleNetworkSSID);
   server.on("/wifiConnect/", handleWifiConnect);
-  server.on("/deviceSettings/", handleDeviceSettings);
   server.on("/spinSettings/", handleSpinSettings);
   server.on("/language/", handleLanguage);
 
@@ -1144,6 +1182,7 @@ void initServer()
   // url-commands, not used in normal circumstances
   server.on("/ap/", switchToAccessPoint);
   server.on("/network/", switchToNetwork);
+  server.on("/deviceSettings/", handleDeviceSettings);
   server.on("/eraseSettings/", eraseSettings);
   server.on("/initSettings/", initSettings);
   server.on("/getSettings/", getSettings);
@@ -1221,39 +1260,40 @@ void loop()
 
   if (detectButtonFlag == true)
   {
-    toggleWiFi();   // only toggle between AP and STA by using the button, not saving in EEPROM
+    toggleWiFi();   // only toggle between AP and STA by using the button and set corresponding Setting
     detectButtonFlag = false;
+    // set eepromStartMode to the correct value, needed for independent spinning in ap-mode
+    // saving in EEPROM
+    if (pSettings->beginAsAccessPoint() == true)
+    {
+      eepromStartModeAP = true; 
+    }
+    else
+    {
+      eepromStartModeAP = false;
+    }
+    pSettings->saveConfigurationSettings();
   }
 
   // For ESP8266WebServer
   server.handleClient();
 
-  // debug
-      if (millis() - lastSendMillis > pSettings->getSEND_PERIOD())
-      {
-      //Serial.println(pSettings->getMemoryContent(0,1024));
-      //Serial.println("");
-      //Serial.println(pSettings->getMemoryContent(512, 650));
-      }
   // For handleHTTPClient
   if (WiFi.getMode() == WIFI_STA)
   {
-    //if (pSettings->getRoleModel() != INDEPENDENT)
-    //{
-      /* send data to target server using ESP8266HTTPClient */
-      if (millis() - lastSendMillis > pSettings->getSEND_PERIOD())
-      {
-        if ((aRequest.readyState() == 0) || (aRequest.readyState() == 4)) {
-            sendDataToTarget(&aRequest, wifiClient, pSettings, pWifiSettings, String(WiFi.macAddress()), detectInfoRequest);
-            detectInfoRequest = false;    // reset value so no info will be sent again
-        }
-        lastSendMillis = millis();
+    /* send data to target server using ESP8266HTTPClient */
+    if (millis() - lastSendMillis > pSettings->getSEND_PERIOD())
+    {
+      if ((aRequest.readyState() == 0) || (aRequest.readyState() == 4)) {
+          sendDataToTarget(&aRequest, wifiClient, pSettings, pWifiSettings, String(WiFi.macAddress()), detectInfoRequest);
+          detectInfoRequest = false;    // reset value so no info will be sent again
       }
-    //}
+      lastSendMillis = millis();
+    }
+
     String response = getAsyncResponse(&aRequest);
     if (response != "") 
     {
-      //Serial.println(response);
       processServerData(response);
     }
   }

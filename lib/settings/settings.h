@@ -28,7 +28,7 @@ private:
   uint16_t SEND_PERIOD = 5000;
 
   /* target server, max size = 32 */
-  String targetServer = "http://10.0.0.10";
+  String targetServer = "http://www.draaiendemolens.nl";
   /* factoryTargetServer */
   String factoryTargetServer = "http://www.draaiendemolens.nl";
 

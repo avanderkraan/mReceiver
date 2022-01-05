@@ -74,8 +74,8 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "<br><br>\r\n";
   result += "<a href='/spin/'>Model spin settings</a> Set speed or connect a real mill\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/device/'>Model startup settings</a> WiFi mode, Server settings\r\n";
-  result += "<br><br>\r\n";
+  //result += "<a href='/device/'>Model startup settings</a> WiFi mode, Server settings\r\n";
+  //result += "<br><br>\r\n";
   result += "<a href='/wifi/'>WiFi</a> settings to connect the Model to WiFi\r\n";
   result += "<br><br>\r\n";
 
@@ -532,6 +532,7 @@ void spin(ESP8266WebServer &server, Settings * pSettings)
   server.send(200, "text/html", result);
 }
 
+/*
 void device(ESP8266WebServer &server, Settings * pSettings)
 {
   String result = "<!DOCTYPE HTML><html>\r\n";
@@ -700,6 +701,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "        sendData(params);\r\n";
   result += "  }\r\n";
   result += "\r\n";
+*/
   /*
   result += "  function saveTargetServerData(content) {\r\n";
   result += "        var children = content.parentNode.childNodes;\r\n";
@@ -734,6 +736,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "    }\r\n";
   result += "\r\n";
   */
+ /*
   result += "  function saveTargetServer(content) {\r\n";
   result += "        var children = content.parentNode.childNodes;\r\n";
   result += "        var targetServer = \"\";\r\n";
@@ -755,6 +758,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "\r\n";
   result += "</script>\r\n";
   result += "\r\n";
+*/
   /*
   result += "<script>\r\n";
   result += "function loadWiFiNetworkList() {\r\n";
@@ -790,7 +794,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "</script>\r\n";
   result += "\r\n";
   */
-  result += "<script>\r\n";
+/*  result += "<script>\r\n";
   result += "function displaySettings() {\r\n";
   result += "var ele = document.getElementsByName('settings');\r\n";
   result += "\r\n";
@@ -815,7 +819,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   server.sendHeader("Pragma", "no-cache");
   server.send(200, "text/html", result);
 }
-
+*/
 void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSettings)
 {
   String result = "<!DOCTYPE HTML>\r\n<html>\r\n";
@@ -1170,8 +1174,8 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<br><br>\r\n";
   result += "<a href='/spin/'>Model draai instellingen</a> Geeft een snelheid of koppel aan een echte molen\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/device/'>Model opstart instellingen</a> WiFi modus, Server instellingen\r\n";
-  result += "<br><br>\r\n";
+  //result += "<a href='/device/'>Model opstart instellingen</a> WiFi modus, Server instellingen\r\n";
+  //result += "<br><br>\r\n";
   result += "<a href='/wifi/'>WiFi</a> instellingen om het Model te koppelen aan WiFi\r\n";
   result += "<br><br>\r\n";
 
@@ -1279,6 +1283,7 @@ void showSavedSettings_nl(ESP8266WebServer &server, Settings * pSettings)
   server.send(200, "text/html", result);
 }
 
+/*
 void device_nl(ESP8266WebServer &server, Settings * pSettings)
 {
   String result = "<!DOCTYPE HTML><html>\r\n";
@@ -1459,6 +1464,7 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "\r\n";
   result += "</script>\r\n";
   result += "\r\n";
+*/
   /*
   result += "<script>\r\n";
   result += "function loadWiFiNetworkList() {\r\n";
@@ -1474,7 +1480,7 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "</script>\r\n";
   result += "\r\n";
   */
-  result += "<script>\r\n";
+/*  result += "<script>\r\n";
   result += "function displaySettings() {\r\n";
   result += "var ele = document.getElementsByName('settings');\r\n";
   result += "\r\n";
@@ -1499,6 +1505,7 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   server.sendHeader("Pragma", "no-cache");
   server.send(200, "text/html", result);
 }
+*/
 
 void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSettings)
 {
