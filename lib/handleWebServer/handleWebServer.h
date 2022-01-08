@@ -7,18 +7,12 @@
 /* show the help page */
 void help(ESP8266WebServer &server, Settings * pSettings);
 void help_nl(ESP8266WebServer &server, Settings * pSettings);
-/* show WiFi mode */
-void showWiFiMode(ESP8266WebServer &server, Settings * pSettings);
-void showWiFiMode_nl(ESP8266WebServer &server, Settings * pSettings);
-/* show saved setting values from EEPROM */
-void showSavedSettings(ESP8266WebServer &server, Settings * pSettings);
-void showSavedSettings_nl(ESP8266WebServer &server, Settings * pSettings);
 /* choose spinning */
 void spin(ESP8266WebServer &server, Settings * pSettings);
 void spin_nl(ESP8266WebServer &server, Settings * pSettings);
-/* choose settings for the device and the target server */
-//void device(ESP8266WebServer &server, Settings * pSettings);
-//void device_nl(ESP8266WebServer &server, Settings * pSettings);
+/* show info mode */
+void info(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWifiSettings);
+void info_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWifiSettings);
 /* choose wifi connection, (Access Point or Station -todo: get SSID for Station-) */
 void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWifiSettings);
 void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWifiSettings);

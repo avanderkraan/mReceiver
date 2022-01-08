@@ -56,7 +56,7 @@ Settings* pSettings = &settings;
 // stepsPerrevolution, maxSpeed, direction, motorInterfaceType are coming from settings/database
 // stepsPerRevolution for your motor 28BYJ-48 is 2038 for FULLxWIRE
 int16_t stepsPerRevolution = pSettings->getStepsPerRevolution();  // 4096 change this to fit the number of steps per revolution
-int16_t maxSpeed = pSettings->getMaxSpeed();  // 1
+int16_t maxSpeed = pSettings->getMaxSpeed();     // 1000 for type 28BYJ-48
 int8_t direction = pSettings->getDirection();    // 1 or -1, some motors are wired reversed
 uint8_t motorInterfaceType = pSettings->getMotorInterfaceType(); //AccelStepper::HALF4WIRE;
 int16_t motorSpeedStepper = 0;
@@ -90,9 +90,8 @@ bool detectInfoRequest = false;
 
 // Forward declaration
 void setupWiFi();
-void showSettings();
+void handleInfo();
 void switchToAccessPoint();
-void handleShowWiFiMode();
 void initServer();
 
 void ICACHE_RAM_ATTR detectButton();
@@ -114,24 +113,24 @@ WiFiClient wifiClient;
 // start Settings and EEPROM stuff
 void saveSettings() {
   pSettings->saveSettings();
-  showSettings();
+  handleInfo();
 }
 
 void getSettings() {
   pSettings->getSettings();
-  showSettings();
+  handleInfo();
 }
 
 void eraseSettings() {
   pSettings->eraseSettings();
   pSettings->getSettings();   // otherwise the previous values of Settings are used
-  showSettings();
+  handleInfo();
 }
 
 void initSettings() {
   pSettings->initSettings();
   pSettings->getSettings();   // otherwise the previous values of Settings are used
-  showSettings();
+  handleInfo();
 }
 // end Settings and EEPROM stuff
 
@@ -235,7 +234,6 @@ void resetWiFiManagerToFactoryDefaults () {
 
 void switchToAccessPoint() {
   pSettings->beginAsAccessPoint(!  pSettings->beginAsAccessPoint());  // toggle
-  handleShowWiFiMode();
   delay(pSettings->WAIT_PERIOD);
 
   server.close();
@@ -252,7 +250,6 @@ void switchToAccessPoint() {
 }
 
 void switchToNetwork() {
-  handleShowWiFiMode();
   delay(pSettings->WAIT_PERIOD);
 
   server.close();
@@ -302,18 +299,6 @@ void buttonInterruptOff() {
   detachInterrupt(BUTTON);
 }
 
-void handleShowWiFiMode()
-{
-  if (pSettings->getLanguage() == "NL")
-  {
-    showWiFiMode_nl(server, pSettings);
-  }
-  else
-  {
-    showWiFiMode(server, pSettings);
-  }
-}
-
 void handleWiFi() {
   if (pSettings->getLanguage() == "NL")
   {
@@ -353,21 +338,19 @@ void handleSse() {
   sse(server, pSettings, revolutions, viewPulsesPerMinute);
 }
 
-void mydebug() {
-  String result = "";
-  String myIP = "";
-  result += "IP address: ";
-  if (WiFi.getMode() == WIFI_AP)
-  {
-    myIP = WiFi.softAPIP().toString();
-  }
+void handleInfo() {
   if (WiFi.getMode() == WIFI_STA)
   {
-    myIP = WiFi.localIP().toString();
+    detectInfoRequest = true;
   }
-
-  result += myIP;
-  result += "\r\n";
+  if (pSettings->getLanguage() == "NL")
+  {
+    info_nl(server, pSettings, pWifiSettings);
+  }
+  else
+  {
+    info(server, pSettings, pWifiSettings);
+  }
 
   Serial.println("wifi gegevens");
   Serial.print("readAccessPointSSID: ");
@@ -419,11 +402,6 @@ void mydebug() {
   
   Serial.print("motor motorInterfaceType: ");
   Serial.println(pSettings->getMotorInterfaceType());
-
-  server.sendHeader("Cache-Control", "no-cache");
-  server.sendHeader("Connection", "keep-alive");
-  server.sendHeader("Pragma", "no-cache");
-  server.send(200, "text/html", result);
 }
 
 String updateFirmware(String requestedVersion)
@@ -580,11 +558,11 @@ void getMDNS() {
   result += ">";
   result += "\r\n";
 
-  String allowServer = pSettings->getTargetServer() + ":" + pSettings->getTargetPort();
-
-  if ((pSettings->getTargetPort() == 80) || (pSettings->getTargetPort() == 443))
+  String allowServer = pSettings->getTargetServer();
+  if ((pSettings->getTargetPort() != 80) && (pSettings->getTargetPort() != 443))
   {
-    allowServer = pSettings->getTargetServer();
+    allowServer += ":";
+    allowServer += String(pSettings->getTargetPort());
   }
       
   uint8_t argumentCounter = 0;
@@ -602,59 +580,6 @@ void getMDNS() {
       }
     }
   }
-
-  server.sendHeader("Cache-Control", "no-cache");
-  server.sendHeader("Connection", "keep-alive");
-  server.sendHeader("Pragma", "no-cache");
-  server.sendHeader("Access-Control-Allow-Origin", allowServer);
-  server.send(200, "text/html", result);
-}
-
-void getMyIP() {
-
-  /* used to answer a xhr call from the browser that is connected to the server */
-  String result = "model_";
- 
-  String myIP = "";
-
-  if (WiFi.getMode() == WIFI_AP)
-  {
-    myIP = WiFi.softAPIP().toString();
-  }
-  if (WiFi.getMode() == WIFI_STA)
-  {
-    myIP = WiFi.localIP().toString();
-  }
-  result += myIP;
-  result += "<";
-  result += pSettings->getRoleModel();
-  result += ">";
-  result += "\r\n";
-
-  String allowServer = pSettings->getTargetServer() + ":" + pSettings->getTargetPort();
-
-  if ((pSettings->getTargetPort() == 80) || (pSettings->getTargetPort() == 443))
-  {
-    allowServer = pSettings->getTargetServer();
-  }
-
-  uint8_t argumentCounter = 0;
-  argumentCounter = server.args();
-  if (argumentCounter == 1) {
-    for (uint8_t i=0; i< server.args(); i++){
-      if (server.argName(i) == "name") {
-        allowServer = server.arg(i);
-        int8_t index = allowServer.lastIndexOf("/");
-        if (index > -1) {
-          if ((uint8_t)index == allowServer.length() -1) {
-            allowServer = allowServer.substring(0, index);
-          }
-        }
-      }
-    }
-  }
-
-  Serial.println(allowServer);
 
   server.sendHeader("Cache-Control", "no-cache");
   server.sendHeader("Connection", "keep-alive");
@@ -715,15 +640,33 @@ void handleRoleModel() {
   }
 }
 
-void showSettings() {
-  if (pSettings->getLanguage() == "NL")
-  {
-    showSavedSettings_nl(server, pSettings);
+
+void handleConnect() {
+  uint8_t argumentCounter = 0;
+
+  argumentCounter = server.args();
+  if (argumentCounter < 4) {  // prevent to many arguments
+    String targetServer = pSettings->getFactoryTargetServer();
+    String targetPort = String(pSettings->getFactoryTargetPort());
+    String targetPath = pSettings->getFactoryTargetPath();
+    for (uint8_t i=0; i< server.args(); i++){
+      if (server.argName(i) == "server") {
+        targetServer = server.arg(i);
+      }
+      if (server.argName(i) == "port") {
+        targetPort = server.arg(i);
+      }
+      if (server.argName(i) == "path") {
+        targetPath = server.arg(i);
+      }
+    }
+
+    pSettings->setTargetServer(targetServer);
+    pSettings->setTargetPort(targetPort);
+    pSettings->setTargetPath(targetPath);
+    pSettings->saveTargetServerStuff();
   }
-  else
-  {
-    showSavedSettings(server, pSettings);
-  }
+  handleInfo();
 }
 
 void handleHelp() {
@@ -882,71 +825,6 @@ void handleWifiConnect() {
   Serial.println(result);
 }
 
-void handleDeviceSettings()
-{
-  uint8_t argumentCounter = 0;
-  String result = "";
-  String result_nl = "";
-
-  if ((server.method() == HTTP_POST) || (server.method() == HTTP_GET))
-  {
-    // extract the settings-data and take action
-    argumentCounter = server.args();  // if argumentCounter > 0 then saveConfigurationSettings
-    String _name = "";
-    String _startWiFiMode = String(pSettings->beginAsAccessPoint());
-    String _targetServer = pSettings->getTargetServer();
-    String _targetPort = String(pSettings->getTargetPort());
-    String _targetPath = pSettings->getTargetPath();
-    for (uint8_t i=0; i< server.args(); i++){
-      if (server.argName(i) == "name") {
-        _name = server.arg(i);
-      }
-      if (server.argName(i) == "startWiFiMode") {
-        _startWiFiMode = server.arg(i);
-      }
-      if (server.argName(i) == "targetServer") {
-        _targetServer = server.arg(i);
-      }
-      if (server.argName(i) == "targetPort") {
-        _targetPort = server.arg(i);
-      }
-      if (server.argName(i) == "targetPath") {
-        _targetPath = server.arg(i);
-      }
-    }
-    // zoek name (is device, targetServer of targetserverData en dan de andere parameters)
-    if (_name == "device")
-    {
-      if (_startWiFiMode == "ap") {
-        pSettings->beginAsAccessPoint(true);
-      }
-      if (_startWiFiMode == "network") {
-        pSettings->beginAsAccessPoint(false);
-      }
-    }
-    if (_name == "targetServer")
-    {
-      pSettings->setTargetServer(_targetServer);
-      pSettings->setTargetPort(_targetPort);
-      pSettings->setTargetPath(_targetPath);
-    }
-    if (argumentCounter > 0) {
-      pSettings->saveConfigurationSettings();
-      result += "Device data has been saved\n";
-      result_nl += "Apparaatgegevens zijn opgeslagen\n";
-    }
-  }
-  if (pSettings->getLanguage() == "NL")
-  {
-    server.send(200, "text/plain", result_nl);
-  }
-  else
-  {
-    server.send(200, "text/plain", result);
-  }
-  Serial.println(result);
-}
-
 void handleSpinSettings()
 {
   uint8_t argumentCounter = 0;
@@ -1002,7 +880,7 @@ void handleSpinSettings()
       }
     }
     if (argumentCounter > 0) {
-      pSettings->saveConfigurationSettings();
+      pSettings->saveRoleModelSetting();
       result += "Device data has been saved\n";
       result_nl += "Apparaatgegevens zijn opgeslagen\n";
     }
@@ -1056,7 +934,7 @@ void processServerData(String responseData) {
   if ((proposedUUID != "") && (pSettings->getDeviceKey() != proposedUUID))
   {
     pSettings->setDeviceKey(proposedUUID);
-    pSettings->saveConfigurationSettings(); // save to EEPROM
+    pSettings->saveDeviceKey(); // save to EEPROM
   }
 
   String pushFirmwareVersion = getValueFromJSON("pFv", responseData);
@@ -1079,11 +957,12 @@ void processServerData(String responseData) {
 
   if ((myStepsPerRevolution != "") && (myMaxSpeed != "") && (myDirection != "") && (myMotorInterfaceType != ""))
   {
-    if ((myStepsPerRevolution != String(pSettings->getStepsPerRevolution())) &&
-        (myMaxSpeed != String(pSettings->getMaxSpeed())) &&
-        (myDirection != String(pSettings->getDirection())) &&
+    if ((myStepsPerRevolution != String(pSettings->getStepsPerRevolution())) ||
+        (myMaxSpeed != String(pSettings->getMaxSpeed())) ||
+        (myDirection != String(pSettings->getDirection())) ||
         (myMotorInterfaceType != String(pSettings->getMotorInterfaceType())) )
         {
+          // something has changed, so save and restart
           pSettings->setStepsPerRevolution((uint16_t)myStepsPerRevolution.toInt());
           pSettings->setMaxSpeed((uint16_t)myMaxSpeed.toInt());
           pSettings->setDirection((int8_t)myDirection.toInt());
@@ -1174,6 +1053,8 @@ void initServer()
   server.on("/wifiConnect/", handleWifiConnect);
   server.on("/spinSettings/", handleSpinSettings);
   server.on("/language/", handleLanguage);
+  server.on("/update/", handleVersion);
+  server.on("/restart/", handleRestart);
 
   // data handler
   server.on("/data.sse/", handleSse);
@@ -1182,28 +1063,38 @@ void initServer()
   // url-commands, not used in normal circumstances
   server.on("/ap/", switchToAccessPoint);
   server.on("/network/", switchToNetwork);
-  server.on("/deviceSettings/", handleDeviceSettings);
   server.on("/eraseSettings/", eraseSettings);
   server.on("/initSettings/", initSettings);
   server.on("/getSettings/", getSettings);
   server.on("/saveSettings/", saveSettings);
   server.on("/reset/", resetWiFiManagerToFactoryDefaults);
-  server.on("/update/", handleVersion);
-  server.on("/restart/", handleRestart);
 
-  // handles debug
-  server.on("/debug/", mydebug);
+  // for selecting a target server when developing
+  // arguments: server, port, path, default are the factorySettings
+  // /connect/ without arguments connects to the production server, 
+  //           port and path
+  server.on("/connect/", handleConnect);
+
+  // handles info
+  server.on("/info/", handleInfo);
+
 
   // handles a check if this url is available
   // remove this when clients are availabe
   server.on("/_mdns/", getMDNS);
-  server.on("/_ip/", getMyIP);
 
   server.begin();
   Serial.println("HTTP server started");
 }
 
-
+void checkSpinValue()
+/* only at startup */
+{
+  if (pSettings->getRoleModel() == INDEPENDENT)
+  {
+    motorSpeedStepper = maxSpeed;
+  }
+}
 
 void setup()
 {
@@ -1233,6 +1124,8 @@ void setup()
   delay(pSettings->WAIT_PERIOD);
 
   initServer();
+
+  checkSpinValue();
 
   // for asyncrequest
   lastSendMillis = millis();
@@ -1272,7 +1165,7 @@ void loop()
     {
       eepromStartModeAP = false;
     }
-    pSettings->saveConfigurationSettings();
+    pSettings->saveStartAsAccessPoint();
   }
 
   // For ESP8266WebServer

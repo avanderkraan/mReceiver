@@ -16,7 +16,7 @@ private:
   /* 4 bytes to store, version of this firmware */
   uint8_t major = 0;   // max 2^8 = 256
   uint8_t minor = 2;   // max 2^8 = 256
-  uint16_t patch = 0;  // max 2^16 = 65536
+  uint16_t patch = 1;  // max 2^16 = 65536
 
   /* start as Access Point or as Network client */
   bool startAsAccessPoint = false;
@@ -33,7 +33,7 @@ private:
   String factoryTargetServer = "http://www.draaiendemolens.nl";
 
   /* target port */
-  uint16_t targetPort = 9090;
+  uint16_t targetPort = 80;
   /* factoryTargetPort server */
   uint16_t factoryTargetPort = 80;
 
@@ -55,7 +55,7 @@ private:
   uint16_t wifiDataAddress = 512;
 
   /* check for first saved initialization */
-  const uint8_t INITCHECK = 63;
+  const uint8_t INITCHECK = 64;
 
   /* 1 byte to store, holds check for first initialization */
   uint8_t initNumber = 0;
@@ -83,6 +83,9 @@ private:
   String roleModel = "None";
   /* factoryRoleModel, this is where the model gets the data from, max size = 32 */
   String factoryRoleModel = "None";  // None means no roleModel defined
+
+  /* rolemodel maxRPM, arbitrary */
+  uint8_t maxRoleModelRPM = 15;
 
   /* motor properties */
   uint16_t stepsPerRevolution = 4076; // change this in the database to fit the number of steps per revolution
@@ -169,8 +172,17 @@ public:
   /* get Settings from EEPROM */
   uint16_t getSettings();
 
-  /* saves only Changed Configuration Settings in EEPROM starting on EEPROM-address (default = 0), returns length of saved bytes */
-  uint16_t saveConfigurationSettings();
+  /* saves rolemodel setting */
+  uint16_t saveRoleModelSetting();
+
+  /* saves DeviceKey in EEPROM */
+  uint16_t saveDeviceKey();
+
+  /* saves the value startAsAccessP[oint in EEPROM  */
+  uint16_t saveStartAsAccessPoint();
+
+  /* saves targetServer in EEPROM  */
+  uint16_t saveTargetServerStuff();
 
   /* return deviceKey */
   String getDeviceKey();
@@ -216,6 +228,9 @@ public:
 
   /* set roleModel */
   void setRoleModel(String roleModel);
+
+  /* get arbitrary value of maxRPM or the roleModel */
+  uint8_t getMaxRoleModelRPM();
 
   /* get factory setting for stepsPerRevolution */
   uint16_t getFactoryStepsPerRevolution();
