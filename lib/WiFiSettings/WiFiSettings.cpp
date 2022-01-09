@@ -32,7 +32,6 @@ uint16_t WiFiSettings::saveAuthorizationAccessPoint()
     // It seems to help preventing ESPerror messages with mode(3,6) when using a delay 
     delay(this->WAIT_PERIOD);
 
-    //EEPROM.begin(this->address + this->storageSize);
     EEPROM.begin(this->MAX_EEPROM_SIZE);
 
     char myssidAccessPoint[33];  // one more for the null character
@@ -65,7 +64,6 @@ uint16_t WiFiSettings::saveAuthorizationNetwork()
     // It seems to help preventing ESPerror messages with mode(3,6) when using a delay 
     delay(this->WAIT_PERIOD);
 
-    //EEPROM.begin(this->address + this->storageSize);
     EEPROM.begin(this->MAX_EEPROM_SIZE);
 
     char myssidNetwork[33];  // one more for the null character
@@ -98,7 +96,6 @@ bool WiFiSettings::eraseSettings(uint16_t startAddress, uint16_t size) {
     uint16_t lastAddress = startAddress + size;
     delay(this->WAIT_PERIOD);
 
-    //EEPROM.begin(this->storageSize);
     EEPROM.begin(this->MAX_EEPROM_SIZE);
     // replace values in EEPROM with 0xff
     for (uint16_t i = startAddress; i < lastAddress; i++) {
@@ -191,7 +188,7 @@ String WiFiSettings::readAccessPointSSID()
   {
     uint16_t address = this->address ;  // Access Point SSID Setting comes first
     char myAccessPointSSID[33];
-    //EEPROM.begin(this->address + this->storageSize);
+
     EEPROM.begin(this->MAX_EEPROM_SIZE);
     EEPROM.get(address, myAccessPointSSID);
     EEPROM.end();  // release RAM copy of EEPROM content
@@ -207,7 +204,7 @@ String WiFiSettings::readAccessPointPassword()
   {
     uint16_t address = this->address + 33;  // Access Point SSID Setting comes second
     char myAccessPointPassword[33];
-    //EEPROM.begin(this->address + this->storageSize);
+
     EEPROM.begin(this->MAX_EEPROM_SIZE);
     EEPROM.get(address, myAccessPointPassword);
     EEPROM.end();  // release RAM copy of EEPROM content
@@ -223,7 +220,7 @@ String WiFiSettings::readNetworkSSID()
   {
     uint16_t address = this->address + 66;  // Access Point SSID Setting comes third
     char myNetworkSSID[33];
-    //EEPROM.begin(this->address + this->storageSize);
+
     EEPROM.begin(this->MAX_EEPROM_SIZE);
     EEPROM.get(address, myNetworkSSID);
     EEPROM.end();  // release RAM copy of EEPROM content
@@ -239,7 +236,7 @@ String WiFiSettings::readNetworkPassword()
     {
     uint16_t address = this->address + 99;  // Access Point SSID Setting comes fourth
     char myNetworkPassword[33];
-    //EEPROM.begin(this->address + this->storageSize);
+
     EEPROM.begin(this->MAX_EEPROM_SIZE);
     EEPROM.get(address, myNetworkPassword);
     EEPROM.end();  // release RAM copy of EEPROM content

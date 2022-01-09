@@ -179,7 +179,6 @@ uint16_t Settings::setupUpdatedFirmware()
     delay(this->WAIT_PERIOD);
 
     EEPROM.begin(this->MAX_EEPROM_SIZE);
-    //EEPROM.put(address, this->initNumber);
     address += sizeof(this->initNumber);
     EEPROM.put(address, this->major);
     address += sizeof(this->major);
@@ -204,11 +203,8 @@ uint16_t Settings::saveSettings()
   uint16_t firstAddress = this->address;
   uint16_t address = this->address;
  
- 
-  //EEPROM.begin(this->storageSize);
   EEPROM.begin(this->MAX_EEPROM_SIZE);
 
-  //uint32_t start = micros();
   EEPROM.put(address, this->initNumber);
   address += sizeof(this->initNumber);
   EEPROM.put(address, this->major);
@@ -277,7 +273,7 @@ bool Settings::isUpdated() {
   uint8_t currentMajor = this->major;
   uint8_t currentMinor = this->minor;
   uint16_t currentPatch = this->patch;
-  //EEPROM.get(address, this->initNumber);
+
   address += sizeof(this->initNumber);
   EEPROM.get(address, currentMajor);
   address += sizeof(this->major);
@@ -313,7 +309,6 @@ bool Settings::isInitialized() {
 bool Settings::eraseSettings() {
   delay(this->WAIT_PERIOD);
 
-  //EEPROM.begin(this->storageSize);
   EEPROM.begin(this->MAX_EEPROM_SIZE);
   // replace values in EEPROM with 0xff
   for (uint16_t i = 0; i < this->storageSize; i++) {
@@ -335,10 +330,8 @@ uint16_t Settings::initSettings()
   uint16_t firstAddress = this->address;
   uint16_t address = this->address;
 
-  //EEPROM.begin(this->storageSize);
   EEPROM.begin(this->MAX_EEPROM_SIZE);
 
-  //uint32_t start = micros();
   EEPROM.put(address, this->factoryInitNumber);
   address += sizeof(this->factoryInitNumber);
   EEPROM.put(address, this->major);
@@ -385,7 +378,6 @@ uint16_t Settings::initSettings()
   EEPROM.put(address, this->factoryMotorInterfaceType);
   address += sizeof(this->factoryMotorInterfaceType);
 
-  //uint8_t myMaxDeviceKey = sizeof(this->deviceKey);
   char myDeviceKey[37];  // one more for the null character
   strcpy(myDeviceKey, this->factoryDeviceKey.c_str());
   EEPROM.put(address, myDeviceKey);
@@ -408,12 +400,12 @@ uint16_t Settings::getSettings()
   uint16_t firstAddress = this->address;
   uint16_t address = this->address;
 
-  //EEPROM.begin(this->storageSize);
   EEPROM.begin(this->MAX_EEPROM_SIZE);
   
   EEPROM.get(address, this->initNumber);
   address += sizeof(this->initNumber);
-  //EEPROM.get(address, this->version); // is done at setupFirmware
+
+  // major, minor, batch is done at setupFirmware
   address += sizeof(this->major);
   address += sizeof(this->minor);
   address += sizeof(this->patch);
@@ -456,7 +448,6 @@ uint16_t Settings::getSettings()
   EEPROM.get(address, this->motorInterfaceType);
   address += sizeof(this->motorInterfaceType);
 
-  //uint8_t myMaxDeviceKey = sizeof(this->deviceKey);
   char mydeviceKey[37];
   EEPROM.get(address, mydeviceKey);
   this->deviceKey = String(mydeviceKey);
@@ -516,8 +507,7 @@ uint16_t Settings::saveRoleModelSetting()
 
   uint16_t firstAddress = this->address;
   uint16_t address = this->address;
- 
-  //EEPROM.begin(this->storageSize);
+
   EEPROM.begin(this->MAX_EEPROM_SIZE);
   address += sizeof(this->initNumber);
 
@@ -553,13 +543,10 @@ uint16_t Settings::saveStartAsAccessPoint()
 
   uint16_t firstAddress = this->address;
   uint16_t address = this->address;
- 
-  //EEPROM.begin(this->storageSize);
+
   EEPROM.begin(this->MAX_EEPROM_SIZE);
 
-  //EEPROM.put(address, this->initNumber);
   address += sizeof(this->initNumber);
-  //EEPROM.put(address, this->version);
   address += sizeof(this->major);
   address += sizeof(this->minor);
   address += sizeof(this->patch);
@@ -584,49 +571,28 @@ uint16_t Settings::saveTargetServerStuff()
 
   uint16_t firstAddress = this->address;
   uint16_t address = this->address;
- 
-  //EEPROM.begin(this->storageSize);
+
   EEPROM.begin(this->MAX_EEPROM_SIZE);
 
-  //EEPROM.put(address, this->initNumber);
   address += sizeof(this->initNumber);
-  //EEPROM.put(address, this->version);
   address += sizeof(this->major);
   address += sizeof(this->minor);
   address += sizeof(this->patch);
   
   address += 3;  // language
-
-  //bool check_startAsAccessPoint;
-  //EEPROM.get(address, check_startAsAccessPoint);
-  //if (check_startAsAccessPoint != this->startAsAccessPoint) {
-  //  EEPROM.put(address, this->startAsAccessPoint);
-  //}
   address += sizeof(this->startAsAccessPoint);
-  
-  //char check_myTargetServer[33];  // one more for the null character
-  //EEPROM.get(address, check_myTargetServer);
+
   char myTargetServer[33];  // one more for the null character
   strcpy(myTargetServer, this->targetServer.c_str());
-  //if (check_myTargetServer != myTargetServer) {
-    EEPROM.put(address, myTargetServer);
-  //}
+  EEPROM.put(address, myTargetServer);
   address += 33;
 
-  //uint16_t check_targetPort;
-  //EEPROM.get(address, check_targetPort);
-  //if (check_targetPort != this->targetPort) {
-    EEPROM.put(address, this->targetPort);
-  //}
+  EEPROM.put(address, this->targetPort);
   address += sizeof(this->targetPort);
 
-  //char check_myTargetPath[17];  // one more for the null character
-  //EEPROM.get(address, check_myTargetPath);
   char myTargetPath[17];  // one more for the null character
   strcpy(myTargetPath, this->targetPath.c_str());
-  //if (check_myTargetPath != myTargetPath) {
-    EEPROM.put(address, myTargetPath);
-  //}
+  EEPROM.put(address, myTargetPath);
   address += 17;
 
   EEPROM.commit();    // with success it will return true
@@ -645,13 +611,10 @@ uint16_t Settings::saveMotorSettings()
 
   uint16_t firstAddress = this->address;
   uint16_t address = this->address;
- 
-  //EEPROM.begin(this->storageSize);
+
   EEPROM.begin(this->MAX_EEPROM_SIZE);
 
-  //EEPROM.put(address, this->initNumber);
   address += sizeof(this->initNumber);
-  //EEPROM.put(address, this->version);
   address += sizeof(this->major);
   address += sizeof(this->minor);
   address += sizeof(this->patch);
@@ -673,8 +636,6 @@ uint16_t Settings::saveMotorSettings()
   
   EEPROM.put(address, this->motorInterfaceType);
   address += sizeof(this->motorInterfaceType);
- 
-//  address += 37; // deviceKey
 
   EEPROM.commit();    // with success it will return true
   EEPROM.end();       // release RAM copy of EEPROM content
@@ -689,18 +650,6 @@ uint16_t Settings::getWiFiDataAddress()
 {
   return this->wifiDataAddress;
 }
-
-/*
-bool Settings::setOffsetAddress(uint16_t deltaAddress)
-{
-  if (this->getOffsetAddress() + deltaAddress > this->MAX_EEPROM_SIZE)
-  {
-    return false;
-  }
-  this->addressOffset += deltaAddress;
-  return true;
-}
-*/
 
 bool Settings::beginAsAccessPoint()
 {
@@ -756,7 +705,6 @@ void Settings::setLanguage(String language)
 
   uint16_t address = this->address;
  
-  //EEPROM.begin(this->storageSize);
   EEPROM.begin(this->MAX_EEPROM_SIZE);
   address += sizeof(this->initNumber);
   address += sizeof(this->major);
@@ -787,19 +735,4 @@ void Settings::setLastNetworkIP(String lastNetworkIP)
 String Settings::getLastNetworkIP()
 {
   return this->lastNetworkIP;
-}
-
-String Settings::getMemoryContent(uint16_t start, uint16_t end)
-{
-  // It seems to help preventing ESPerror messages with mode(3,6) when using a delay 
-  delay(this->WAIT_PERIOD);
-  String content;
-  EEPROM.begin(this->MAX_EEPROM_SIZE);
-  for (uint16_t i = start; i < end; i++)
-  {
-    content += char(EEPROM.read(i));
-  }
-  EEPROM.end();
-  delay(this->WAIT_PERIOD);
-  return content;
 }

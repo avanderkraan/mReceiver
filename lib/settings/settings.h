@@ -48,9 +48,6 @@ private:
   /* first address for Settings storage */
   const uint16_t address = 0;
 
-  /* first available address for Settings storage, for use in other functions or classes */
-  //uint16_t addressOffset = 0;
-
   /* first address for WiFiData */
   uint16_t wifiDataAddress = 512;
 
@@ -106,25 +103,21 @@ public:
                         sizeof(this->major) +      // 1
                         sizeof(this->minor) +      // 1
                         sizeof(this->patch) +      // 2
-                        3 +                   // language (NL) + 1
+                        3 +                        // language (NL) + 1
                         sizeof(this->startAsAccessPoint) +  // 1
-                        33 +                  // max size targetServer + 1
+                        33 +                       // max size targetServer + 1
                         sizeof(this->targetPort) +          // 2
-                        17 +                  // max size of targetPath + 1
-                        33 +                  // max size roleModel + 1
+                        17 +                       // max size of targetPath + 1
+                        33 +                       // max size roleModel + 1
                         sizeof(this->stepsPerRevolution) +  // 2
                         sizeof(this->maxSpeed) +            // 2
                         sizeof(this->direction) +           // 1
                         sizeof(this->motorInterfaceType) +  // 1
-                        37;                   // MAX_DEVICEKEY + 1
+                        37;                        // MAX_DEVICEKEY + 1
 
     //this->initSettings(); // is called through the browser
     /* set new address offset */
-    /*
-    this->setOffsetAddress(this->storageSize); is the same as:
-        this->addressOffset = this->address + this->storageSize;
-    */
-    //this->addressOffset = this->address + this->storageSize;
+
     this->setupEEPROM();
     this->setupUpdatedFirmware();
   };
@@ -271,9 +264,6 @@ public:
   /* saves settings for motor properties */
   uint16_t saveMotorSettings();
 
-  /* EEPROM Offset Address, for use in other functions or classes */
-  //uint16_t getOffsetAddress();
-
   /* EEPROM value for wifi data, used in WifiSettings */
   uint16_t getWiFiDataAddress();
 
@@ -286,7 +276,6 @@ public:
   /* set start as Access point or as network client */
   void beginAsAccessPoint(bool beginAsAccessPointValue);
 
-
   /* language, automatically saved */
   void setLanguage(String language);
 
@@ -298,8 +287,5 @@ public:
 
   /* network station last known IP address, will not be saved */
   String getLastNetworkIP();
-
-  /* debug */
-  String getMemoryContent(uint16_t start, uint16_t end);
 };
 #endif

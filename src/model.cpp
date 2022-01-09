@@ -1,7 +1,6 @@
 #include <ESP8266WiFi.h>          //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 #include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
 
-//#include <ESP8266mDNS.h>
 #include "handlemDNS.h"
 #include <WiFiUdp.h>
 
@@ -22,10 +21,6 @@ const int motorPin4 = D7;   // IN4
 /////////////////////
 // Pin Definitions //
 /////////////////////
-// On a ESP8266-12 GPIO0 is used, physical name is pin D0
-// On a ESP8266-12 GPIO5 is used, physical name is pin D5
-
-// when using D0 only one direction of receiver works, so now using D8
 
 // D5 gives troubles when it is high at the start.
 
@@ -108,7 +103,6 @@ void toggleWiFi();
 
 ESP8266WebServer server(80);
 WiFiClient wifiClient;
-//MDNSResponder mdns;
 
 // start Settings and EEPROM stuff
 void saveSettings() {
@@ -281,14 +275,14 @@ void ICACHE_RAM_ATTR detectButton() {  // ICACHE_RAM_ATTR is voor interrupts
   // this function is called after a change of pressed button  
   buttonInterruptOff();  // to prevent exception
 
-  delayInMillis(10);      // prevent bounce
+  delayInMillis(10);     // prevent bounce
   
   if (digitalRead(BUTTON) == LOW)
   {
     detectButtonFlag = true;
     // only toggle between AP and STA by using the button, not saving in EEPROM
   }
-  buttonInterruptOn();  // to prevent exception
+  buttonInterruptOn();   // to prevent exception
 }
 
 void buttonInterruptOn() {
@@ -320,19 +314,6 @@ void handleSpin() {
     spin(server, pSettings);
   }
 }
-
-/*
-void handleDevice() {
-  if (pSettings->getLanguage() == "NL")
-  {
-    device_nl(server, pSettings);
-  }
-  else
-  {
-    device(server, pSettings);
-  }
-}
-*/
 
 void handleSse() {
   sse(server, pSettings, revolutions, viewPulsesPerMinute);
@@ -542,10 +523,7 @@ void handleRestart() {
     server.send(200, "text/html", result);
   }
 }
-/* void alive must be used in clients only
-but for now, in develop-phase it is allowed here
-TODO remove this when clients are available to test
-*/
+
 void getMDNS() {
   String firstFreeHostname = findFirstFreeHostname();
 
@@ -834,7 +812,7 @@ void handleSpinSettings()
   if (server.method() == HTTP_POST)
   {
     // extract the settings-data and take action
-    argumentCounter = server.args();  // if argumentCounter > 0 then saveConfigurationSettings
+    argumentCounter = server.args();  // if argumentCounter > 0 then save Settings
     String _name = "";
     String _spinMode = "";
     String _roleModelSpeed = "";
@@ -853,7 +831,6 @@ void handleSpinSettings()
         _roleModelCode = server.arg(i);
       }
     }
-    // zoek name (is device, targetServer of targetserverData en dan de andere parameters)
     if (_name == "spin")
     {
       if (_spinMode == INDEPENDENT) {
@@ -971,19 +948,8 @@ void processServerData(String responseData) {
           pSettings->saveMotorSettings();
           ESP.restart();
         }
-
-    //myStepper = AccelStepper(motorInterfaceType, motorPin1, motorPin3, motorPin2, motorPin4);
   }
 
-  // TODO: could be used on a display:
-  //String name = getValueFromJSON("name", responseData);
-  //String message = getValueFromJSON("message", responseData);
-  // end TODO:
-
-  //if (pSettings->getRoleModel() != INDEPENDENT)
-  //{
-  //  motorSpeedStepper = 0;
-  //}
   if (rph != "")
   {
     uint16_t speedValue = (uint16_t)rph.toInt();
@@ -1003,13 +969,11 @@ void toggleWiFi()
   pSettings->beginAsAccessPoint(!  pSettings->beginAsAccessPoint());  // toggle
   if (pSettings->beginAsAccessPoint() == true)
   {
-    //switchToAccessPoint();
-    setupWiFi();        // local network as access point
+    setupWiFi();           // local network as access point
   }
   else
   {
-    //switchToNetwork();
-    setupWiFiManager();             // part of local network as station
+    setupWiFiManager();    // part of local network as station
   }
 }
 
@@ -1021,13 +985,6 @@ void initHardware()
   pinMode(ACCESSPOINT_LED, OUTPUT);
 
   pinMode(BUTTON, INPUT_PULLUP);
-
-  //stepsPerRevolution = pSettings->getStepsPerRevolution();
-  //maxSpeed = pSettings->getMaxSpeed();
-  //direction = pSettings->getDirection();
-  //motorInterfaceType = pSettings->getMotorInterfaceType();
-
-  //myStepper = AccelStepper(motorInterfaceType, motorPin1, motorPin3, motorPin2, motorPin4);
 
   myStepper.setMaxSpeed(maxSpeed);
   myStepper.setSpeed(0);
@@ -1045,7 +1002,6 @@ void initServer()
   server.onNotFound(handleHelp);
 
   // interactive pages
-  //server.on("/device/", handleDevice);  deprecated as from version 0.2.0
   server.on("/spin/", handleSpin);
   server.on("/wifi/", handleWiFi);
   // handles input from interactive pages
@@ -1077,7 +1033,6 @@ void initServer()
 
   // handles info
   server.on("/info/", handleInfo);
-
 
   // handles a check if this url is available
   // remove this when clients are availabe
@@ -1197,7 +1152,7 @@ void loop()
     if (no_sta_counter < NO_STA_COUNTER_MAX)
     {
       no_sta_counter +=1;
-      delay(50);          // small value because loop must continue for other purposes
+      delay(50);           // small value because loop must continue for other purposes
     }
     else {
       no_sta_counter = 0;

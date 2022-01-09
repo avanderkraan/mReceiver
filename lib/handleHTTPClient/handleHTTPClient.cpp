@@ -49,17 +49,6 @@ String getSendInfo(Settings * pSettings, WiFiSettings* pWifiSettings, String mac
   result += pSettings->getMotorInterfaceType();
   result += "\",";
 
-  /*
-  result += "\"apssid\":";
-  result += "\"";
-  result += pWifiSettings->readAccessPointSSID();
-  result += "\",";
-
-  result += "\"stssid\":";
-  result += "\"";
-  result += pWifiSettings->readNetworkSSID();
-  result += "\",";
-*/
   result += "\"cid\":";
   result += "\"";
   result += String(ESP.getFlashChipId());
