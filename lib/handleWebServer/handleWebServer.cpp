@@ -31,7 +31,6 @@ void info(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWifiSe
 
   result += "\r\n\r\n<br><br>IP address: ";
   result += myIP;
-  result += "\r\n<br><br>";
 
   result += "\r\n<br><strong>Firmware version: ";
   result += pSettings->getFirmwareVersion();
@@ -607,9 +606,9 @@ void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSe
   result += "<title>model</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Don't want to share with internet or no WiFi available? Choose AccessPoint\r\n";
+  result += "Choose AccessPoint to change the default password\r\n";
   result += "<br>\r\n";
-  result += "You want to share with internet and have WiFi available? Choose Network\r\n";
+  result += "Choose Network to connect the model to your own WiFi\r\n";
   result += "<br><br>\r\n";
   result += "<input type=\"radio\" name=\"wifi\" onclick=\"displayWiFiMode()\" value=\"ap\">Access Point\r\n";
   result += "<br>\r\n";
@@ -621,22 +620,24 @@ void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSe
   result += "<div id=\"ap\">\r\n";
   result += "  Clients can get access to this Access Point using the SSID and password entered below\r\n";
   result += "  <br>\r\n";
-  result += "  An empty SSID will result in a default SSID for the Model\r\n";
-  result += "  <br>\r\n";
+  //result += "  An empty SSID will result in a default SSID for the Model\r\n";
+  //result += "  <br>\r\n";
   result += "  An empty password will result in an unencrypted, open Access Point\r\n";
   result += "  <br>\r\n";
-  result += "  SSID: <input type=\"text\" name=\"ssid\" maxlength=\"32\" size=\"33\" placeholder=\"";
+  //result += "  SSID: <input type=\"text\" name=\"ssid\" maxlength=\"32\" size=\"33\" placeholder=\"";
+  result += "  SSID: ";
+  //result += "  SSID: <input type=\"text\" name=\"ssid\" maxlength=\"32\" size=\"33\" placeholder=\"";
   if (pWiFiSettings->getAccessPointSSID() == "")
   {
-    result += "SSID";
+    result += "ESP-" + WiFi.softAPmacAddress();
   }
   else
   {
     result += pWiFiSettings->getAccessPointSSID();
   }
-  result += "\" value=\"";
-  result += pWiFiSettings->getAccessPointSSID();
-  result += "\">\r\n";
+  //result += "\" value=\"";
+  //result += pWiFiSettings->getAccessPointSSID();
+  //result += "\">\r\n";
   result += "  <br>\r\n";
   result += "  Password: <input type=\"password\" name=\"password\" maxlength=\"32\" size=\"33\" placeholder=\"";
   if (pWiFiSettings->getAccessPointPassword() == "")
@@ -906,7 +907,6 @@ void info_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWif
 
   result += "\r\n\r\n<br><br>IP adres: ";
   result += myIP;
-  result += "\r\n<br><br>";
 
   result += "\r\n<br><strong>Firmware versie: ";
   result += pSettings->getFirmwareVersion();
@@ -1094,9 +1094,9 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   result += "<title>model</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Wil gegevens niet delen met internet of geen WiFi beschikbaar? Kies AccessPoint\r\n";
+  result += "Kies AccessPoint om het standaard wachtwoord te wijzigen\r\n";
   result += "<br>\r\n";
-  result += "Wil gegevens delen met internet en er is WiFi beschibaar? Kies Netwerk Station\r\n";
+  result += "Kies Netwerk Station om het model te koppelen aan je eigen WiFi\r\n";
   result += "<br><br>\r\n";
   result += "<input type=\"radio\" name=\"wifi\" onclick=\"displayWiFiMode()\" value=\"ap\">Access Point\r\n";
   result += "<br>\r\n";
@@ -1108,22 +1108,23 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   result += "<div id=\"ap\">\r\n";
   result += "  Apparaten kunnen toegang krijgen tot dit Access Point met het hieronder ingevulde SSID en wachtwoord\r\n";
   result += "  <br>\r\n";
-  result += "  Een niet-ingevuld SSID geeft het standaard SSID van het Access Point\r\n";
-  result += "  <br>\r\n";
+  //result += "  Een niet-ingevuld SSID geeft het standaard SSID van het Access Point\r\n";
+  //result += "  <br>\r\n";
   result += "  Een niet-ingevuld wachtwoord geeft een onveilige, open Access Point\r\n";
   result += "  <br>\r\n";
-  result += "  SSID: <input type=\"text\" name=\"ssid\" maxlength=\"32\" size=\"33\" placeholder=\"";
+  result += "  SSID: ";
+  //result += "  SSID: <input type=\"text\" name=\"ssid\" maxlength=\"32\" size=\"33\" placeholder=\"";
   if (pWiFiSettings->getAccessPointSSID() == "")
   {
-    result += "SSID";
+    result += "ESP-" + WiFi.softAPmacAddress();
   }
   else
   {
     result += pWiFiSettings->getAccessPointSSID();
   }
-  result += "\" value=\"";
-  result += pWiFiSettings->getAccessPointSSID();
-  result += "\">\r\n";
+  //result += "\" value=\"";
+  //result += pWiFiSettings->getAccessPointSSID();
+  //result += "\">\r\n";
   result += "  <br>\r\n";
   result += "  Wachtwoord: <input type=\"password\" name=\"password\" maxlength=\"32\" size=\"33\" placeholder=\"";
   if (pWiFiSettings->getAccessPointPassword() == "")
