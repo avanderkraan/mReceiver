@@ -932,7 +932,10 @@ void processServerData(String responseData) {
   String myDirection = getValueFromJSON("d", responseData);
   String myMotorInterfaceType = getValueFromJSON("mit", responseData);
 
-  if ((myStepsPerRevolution != "") && (myMaxSpeed != "") && (myDirection != "") && (myMotorInterfaceType != ""))
+  if ((myStepsPerRevolution != "") && 
+      (myMaxSpeed != "") && 
+      ((myDirection == "-1") || (myDirection == "1")) && 
+      (myMotorInterfaceType != ""))
   {
     if ((myStepsPerRevolution != String(pSettings->getStepsPerRevolution())) ||
         (myMaxSpeed != String(pSettings->getMaxSpeed())) ||
