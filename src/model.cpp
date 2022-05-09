@@ -89,7 +89,7 @@ void handleInfo();
 void switchToAccessPoint();
 void initServer();
 
-void ICACHE_RAM_ATTR detectButton();
+void IRAM_ATTR detectButton();
 void buttonInterruptOn();
 void buttonInterruptOff();
 
@@ -271,7 +271,7 @@ void delayInMillis(uint8_t ms)
   }
 }
 
-void ICACHE_RAM_ATTR detectButton() {  // ICACHE_RAM_ATTR is voor interrupts
+void IRAM_ATTR detectButton() {  // IRAM_ATTR is voor interrupts
   // this function is called after a change of pressed button  
   buttonInterruptOff();  // to prevent exception
 
