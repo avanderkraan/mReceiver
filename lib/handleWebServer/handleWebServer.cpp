@@ -15,6 +15,8 @@ void info(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWifiSe
   endhtml += "</html>\r\n";
 
   String result = starthtml;
+  result += "Information about the mill model\r\n";
+  result += "<br><br><br>\r\n";
   String myIP = "";
   if (WiFi.getMode() == WIFI_AP)
   {
@@ -86,6 +88,8 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "<title>model</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
+  result += "Settings for the mill model\r\n";
+  result += "<br><br><br>\r\n";
   result += "<input id=\"EN\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"English\">\r\n";
   result += "<input id=\"NL\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"Nederlands\">\r\n";
   result += "<br><br>\r\n";
@@ -220,7 +224,7 @@ void spin_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<title>model</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Draai Instellingen voor het Model\r\n";
+  result += "Draai Instellingen voor het molen model\r\n";
   result += "<br><br><br>\r\n";
   result += "<div id=\"spinSetting\" onclick=\"clearMessage();\">\r\n";
   result += "    Dit model kan zelf draaien maar kan ook gekoppeld zijn aan een echte molen \r\n";
@@ -413,7 +417,7 @@ void spin(ESP8266WebServer &server, Settings * pSettings)
   result += "<title>model</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Spin Settings for the Model\r\n";
+  result += "Spin Settings for the mill model\r\n";
   result += "<br><br><br>\r\n";
   result += "<div id=\"spinSetting\" onclick=\"clearMessage();\">\r\n";
   result += "    This model can spin by itself and also be connected to a real mill \r\n";
@@ -606,6 +610,8 @@ void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSe
   result += "<title>model</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
+  result += "WiFi settings for the mill model\r\n";
+  result += "<br><br><br>\r\n";
   result += "Choose AccessPoint to change the default password\r\n";
   result += "<br>\r\n";
   result += "Choose Network to connect the model to your own WiFi\r\n";
@@ -891,6 +897,9 @@ void info_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWif
   endhtml += "</html>\r\n";
 
   String result = starthtml;
+  result += "Informatie over het molen model\r\n";
+  result += "<br><br><br>\r\n";
+
   String myIP = "";
   if (WiFi.getMode() == WIFI_AP)
   {
@@ -962,6 +971,8 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<title>model</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
+  result += "Instellingen voor het molen model\r\n";
+  result += "<br><br><br>\r\n";
   result += "<input id=\"EN\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"English\">\r\n";
   result += "<input id=\"NL\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"Nederlands\">\r\n";
   result += "<br><br>\r\n";
@@ -1094,6 +1105,8 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   result += "<title>model</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
+  result += "WiFi instellingen voor het molen model\r\n";
+  result += "<br><br><br>\r\n";
   result += "Kies AccessPoint om het standaard wachtwoord te wijzigen\r\n";
   result += "<br>\r\n";
   result += "Kies Netwerk Station om het model te koppelen aan je eigen WiFi\r\n";
