@@ -4,9 +4,19 @@
 #include "settings.h"
 #include "WiFiSettings.h"
 
+/* header-part */
+String getStyle();
+String getHeaderPart(uint8_t button);
+String getHeaderPart_nl(uint8_t button);
+/* update-part */
+String getUpdatePart(Settings * pSettings);
+String getUpdatePart_nl(Settings * pSettings);
+/* footer-part */
+String getFooterPart(Settings * pSettings);
+String getFooterPart_nl(Settings * pSettings);
 /* show the help page */
-void help(ESP8266WebServer &server, Settings * pSettings);
-void help_nl(ESP8266WebServer &server, Settings * pSettings);
+//void help(ESP8266WebServer &server, Settings * pSettings);
+//void help_nl(ESP8266WebServer &server, Settings * pSettings);
 /* choose spinning */
 void spin(ESP8266WebServer &server, Settings * pSettings);
 void spin_nl(ESP8266WebServer &server, Settings * pSettings);

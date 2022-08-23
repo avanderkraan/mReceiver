@@ -44,6 +44,36 @@ public:
   WiFiSettings(Settings * pSettings)
   {
     this->WAIT_PERIOD = pSettings->WAIT_PERIOD;
+    /* Storage for AP and Network SSID, plus AP and Network Password */
+    this->storageSize = 132;   // including 4 NULL characters in total (1 for each part) 
+
+    /* first thing to do is set the start-address for this module to the offsetaddress as defined in Settings */ 
+    this->address = pSettings->getWiFiDataAddress();
+
+    /* if there is not enough space on EEPROM, writing will fail and reading will return an empty String */
+    if (pSettings->getWiFiDataAddress() + this->storageSize < this->MAX_EEPROM_SIZE)  // is there enough space on EEPROM?
+    {
+      this->storageSizeIsAvailable = true;
+
+      if (! this->isInitialized()) {
+        this->setAccessPointSSID(String("ESP-" + WiFi.macAddress()));
+        this->setAccessPointPassword(this->passwordAccessPoint);
+        this->saveAuthorizationAccessPoint();
+      }
+      else
+      {
+        this->ssidNetwork = this->readNetworkSSID();
+        this->passwordNetwork = this->readNetworkPassword();
+        this->ssidAccessPoint = this->readAccessPointSSID();
+        this->passwordAccessPoint = this->readAccessPointPassword();
+      }
+    }
+  };
+
+/*
+  WiFiSettings(Settings * pSettings)
+  {
+    this->WAIT_PERIOD = pSettings->WAIT_PERIOD;
     // Storage for AP and Network SSID, plus AP and Network Password
     this->storageSize = 132;   // including 4 NULL characters in total (1 for each part) 
 
@@ -54,12 +84,14 @@ public:
       this->address = pSettings->getWiFiDataAddress();
       
       if (this->isInitialized() == false) {
-        this->setAccessPointSSID(String("ESP-" + WiFi.softAPmacAddress()));
+        this->setAccessPointSSID(String("ESP-" + WiFi.macAddress()));
         this->setAccessPointPassword(this->passwordAccessPoint);
         this->saveAuthorizationAccessPoint();
       }
     }
   };
+*/
+
 
   ~WiFiSettings()
   {

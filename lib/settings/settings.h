@@ -52,7 +52,7 @@ private:
   uint16_t wifiDataAddress = 512;
 
   /* check for first saved initialization */
-  const uint8_t INITCHECK = 64;
+  const uint8_t INITCHECK = 65;
 
   /* 1 byte to store, holds check for first initialization */
   uint8_t initNumber = 0;
@@ -84,6 +84,9 @@ private:
   /* rolemodel maxRPM, arbitrary */
   uint8_t maxRoleModelRPM = 15;
 
+  /* rolemodel RPM */
+  uint8_t roleModelRPM = maxRoleModelRPM;
+
   /* motor properties */
   uint16_t stepsPerRevolution = 4076; // change this in the database to fit the number of steps per revolution
   uint16_t maxSpeed = 1000;           // each motortype has its own maximum speed
@@ -113,6 +116,7 @@ public:
                         sizeof(this->maxSpeed) +            // 2
                         sizeof(this->direction) +           // 1
                         sizeof(this->motorInterfaceType) +  // 1
+                        sizeof(this->roleModelRPM) +        // 1
                         37;                        // MAX_DEVICEKEY + 1
 
     //this->initSettings(); // is called through the browser
@@ -167,6 +171,9 @@ public:
 
   /* saves rolemodel setting */
   uint16_t saveRoleModelSetting();
+
+  /* saves rolemodel RPM */
+  uint16_t saveRoleModelRPM();
 
   /* saves DeviceKey in EEPROM */
   uint16_t saveDeviceKey();
@@ -243,6 +250,9 @@ public:
   /* get setting for the motors maximum speed */
   uint16_t getMaxSpeed();
 
+  /* get current rolemodel speedsetting */
+  uint8_t getRoleModelRPM();
+
   /* get setting for the motor direction */
   int8_t getDirection();
 
@@ -254,6 +264,9 @@ public:
 
   /* set setting for the motors maximum speed */
   void setMaxSpeed(uint16_t maxSpeed);
+
+  /* set current rolemodel speed */
+  void setRoleModelRPM(uint8_t roleModelRPM);
 
   /* set setting for the motor direction */
   void setDirection(int8_t direction);

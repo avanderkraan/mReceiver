@@ -30,8 +30,8 @@ const uint8_t ACCESSPOINT_LED = D3;  // was D1
 const uint8_t STATION_LED = D2;      // was D2
 
 // variables for reset to STA mode
-const uint16_t NO_STA_COUNTER_MAX = 6000; // with a delay of 50 ms the max pause time is 5 minutes
-uint16_t no_sta_counter = 0;
+unsigned long lastStartMillis = millis();
+const uint32_t NO_STA_MAX_MILLIS = 300000;  // 300 000 millis leaves an interval of 5 minutes
 bool eepromStartModeAP = false;     // see setup, holds the startmode from eeprom
 
 const uint32_t RELAX_PERIOD = 2;    // Is also a small energy saving, in milliseconds
@@ -69,7 +69,7 @@ WiFiSettings* pWifiSettings = &wifiSettings;
 // AsyncHTTPrequest //
 //////////////////////
 asyncHTTPrequest aRequest;
-long lastSendMillis;
+unsigned long lastSendMillis;
 
 // detectButtonFlag lets the program know that a network-toggle is going on
 bool detectButtonFlag = false;
@@ -84,7 +84,8 @@ bool updateSucceeded = false;
 bool detectInfoRequest = false;
 
 // Forward declaration
-void setupWiFi();
+void setupWiFiAsAccessPoint();
+//void setupWiFi();
 void handleInfo();
 void switchToAccessPoint();
 void initServer();
@@ -128,10 +129,11 @@ void initSettings() {
 }
 // end Settings and EEPROM stuff
 
+/*
 void setupWiFi(){
   digitalWrite(STATION_LED, HIGH);
   digitalWrite(ACCESSPOINT_LED, HIGH);
-
+  WiFi.softAPdisconnect(true);
   WiFi.mode(WIFI_AP);
   String myssid = pWifiSettings->readAccessPointSSID();
   String mypass = pWifiSettings->readAccessPointPassword();
@@ -140,6 +142,7 @@ void setupWiFi(){
   {
     myssid = "ESP-" + WiFi.macAddress();
     pWifiSettings->setAccessPointSSID(myssid);
+    pWifiSettings->saveAuthorizationAccessPoint();
   }
 
   IPAddress local_IP(192,168,4,1);
@@ -151,12 +154,13 @@ void setupWiFi(){
   Serial.println(WiFi.softAP(myssid,mypass,3,0) ? "Ready" : "Failed!");
   Serial.print("Setting soft-AP configuration ... ");
   Serial.println(WiFi.softAPConfig(local_IP, gateway, subnet) ? "Ready" : "Failed!");
-  Serial.print("Connecting to AP mode");
+  Serial.println("Connecting to AP mode");
 
   delay(500);
   Serial.print("Soft-AP IP address = ");
   Serial.println(WiFi.softAPIP());
   Serial.println(WiFi.softAPmacAddress());
+  Serial.println(WiFi.softAPSSID());
 
   digitalWrite(ACCESSPOINT_LED, HIGH);
   digitalWrite(STATION_LED, LOW);
@@ -207,6 +211,94 @@ void setupWiFiManager () {
     switchToAccessPoint();
   }
 }
+*/
+
+void setupWiFiAsAccessPoint(){
+  digitalWrite(ACCESSPOINT_LED, HIGH);
+  digitalWrite(STATION_LED, HIGH);
+
+  WiFi.mode(WIFI_AP);
+
+  String myssid = pWifiSettings->readAccessPointSSID();
+  String mypass = pWifiSettings->readAccessPointPassword();
+
+
+  if (myssid == "")
+  {
+    myssid = "ESP-" + WiFi.macAddress();
+    pWifiSettings->setAccessPointSSID(myssid);
+    pWifiSettings->saveAuthorizationAccessPoint();
+  }
+
+  IPAddress local_IP(192,168,4,1);
+  IPAddress gateway(192,168,4,1);
+  IPAddress subnet(255,255,255,0);
+
+  Serial.print("Setting soft-AP ... ");
+  Serial.println(WiFi.softAPConfig(local_IP, gateway, subnet) ? "Ready" : "Failed!");
+  Serial.print("Connecting to AP mode");
+  // mypass needs minimum of 8 characters
+  Serial.println(WiFi.softAP(myssid,mypass,3,0,4) ? "Ready" : "Failed!");
+  Serial.print("Setting soft-AP configuration ... ");
+
+  delay(500);
+  Serial.print("Soft-AP IP address = ");
+  Serial.println(WiFi.softAPIP());
+  Serial.println(WiFi.softAPmacAddress());
+  
+  digitalWrite(ACCESSPOINT_LED, HIGH);
+  digitalWrite(STATION_LED, LOW);
+
+  pSettings->beginAsAccessPoint(true);  // not saved in EEPROM
+}
+
+void setupWiFiAsStation () {
+  bool networkConnected = false;
+
+  digitalWrite(ACCESSPOINT_LED, HIGH);
+  digitalWrite(STATION_LED, HIGH);
+
+  String mynetworkssid = pWifiSettings->readNetworkSSID();
+
+  if (mynetworkssid != "") {
+    String mynetworkpass = pWifiSettings->readNetworkPassword();
+
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(mynetworkssid, mynetworkpass); 
+
+    Serial.print("Connecting to a WiFi Network");
+    int toomuch = 30;  //gives 30 seconds to connect to a Wifi network
+    while ((WiFi.status() != WL_CONNECTED) && (toomuch > 0))
+    {
+      delay(1000);
+      Serial.print(".");
+      toomuch -=1;
+    }
+    if (toomuch > 0) {
+      Serial.println();
+
+      Serial.print("Connected, IP address: ");
+      Serial.println("local ip address");
+      Serial.println(WiFi.localIP());
+      Serial.println(WiFi.gatewayIP());
+      Serial.println(WiFi.macAddress());
+    
+      networkConnected = true;
+      pSettings->setLastNetworkIP(WiFi.localIP().toString());
+
+      digitalWrite(ACCESSPOINT_LED, LOW);
+      digitalWrite(STATION_LED, HIGH);
+      pSettings->beginAsAccessPoint(false);  //not saved in EEPROM
+
+      detectInfoRequest = true;  // info includes the correct ratio from the server
+    }
+  }
+  if (networkConnected == false) {
+    // no network found, fall back to access point
+    Serial.println("no network SSID found/selected, fall back to AccessPoint mode");
+    switchToAccessPoint();
+  }
+}
 
 void resetWiFiManagerToFactoryDefaults () {
 
@@ -234,7 +326,8 @@ void switchToAccessPoint() {
   resetWiFiManagerToFactoryDefaults();
   delay(pSettings->WAIT_PERIOD);
 
-  setupWiFi();
+  //setupWiFi();
+  setupWiFiAsAccessPoint();
   delay(pSettings->WAIT_PERIOD);
 
   initServer();
@@ -250,7 +343,9 @@ void switchToNetwork() {
   resetWiFiManagerToFactoryDefaults();
   delay(pSettings->WAIT_PERIOD);
 
-  setupWiFiManager();
+  //setupWiFiManager();
+  setupWiFiAsStation();
+
   delay(pSettings->WAIT_PERIOD);
 
   delay(pSettings->WAIT_PERIOD);
@@ -320,10 +415,6 @@ void handleSse() {
 }
 
 void handleInfo() {
-  if (WiFi.getMode() == WIFI_STA)
-  {
-    detectInfoRequest = true;
-  }
   if (pSettings->getLanguage() == "NL")
   {
     info_nl(server, pSettings, pWifiSettings);
@@ -441,6 +532,10 @@ void handleVersion() {
     // search name 
     if (name == "update")
     {
+      if (WiFi.getMode() == WIFI_STA)
+      {
+        detectInfoRequest = true;
+      }
       if (argumentCounter > 0)
       {
         result = updateFirmware("latest");
@@ -647,17 +742,6 @@ void handleConnect() {
   handleInfo();
 }
 
-void handleHelp() {
-  if (pSettings->getLanguage() == "NL")
-  {
-    help_nl(server, pSettings);
-  }
-  else
-  {
-    help(server, pSettings);
-  }
-}
-
 void handleLanguage() {
   uint8_t argumentCounter = 0;
   String result = "";
@@ -835,12 +919,13 @@ void handleSpinSettings()
     {
       if (_spinMode == INDEPENDENT) {
         pSettings->setRoleModel(INDEPENDENT);
+        pSettings->setRoleModelRPM((uint8_t)_roleModelSpeed.toInt());
         if (_roleModelSpeed.toInt() * stepsPerRevolution / 60 < maxSpeed) {
           motorSpeedStepper = round(_roleModelSpeed.toInt() * stepsPerRevolution / 60);
-         }
-         else {
-           motorSpeedStepper = maxSpeed;
-         }
+        }
+        else {
+          motorSpeedStepper = maxSpeed;
+        }
       }
       if (_spinMode == "connected")
       {
@@ -858,8 +943,9 @@ void handleSpinSettings()
     }
     if (argumentCounter > 0) {
       pSettings->saveRoleModelSetting();
-      result += "Device data has been saved\n";
-      result_nl += "Apparaatgegevens zijn opgeslagen\n";
+      pSettings->saveRoleModelRPM();
+      result += "Data has been saved\n";
+      result_nl += "Gegevens zijn opgeslagen\n";
     }
   }
   if (pSettings->getLanguage() == "NL")
@@ -972,11 +1058,13 @@ void toggleWiFi()
   pSettings->beginAsAccessPoint(!  pSettings->beginAsAccessPoint());  // toggle
   if (pSettings->beginAsAccessPoint() == true)
   {
-    setupWiFi();           // local network as access point
+    //setupWiFi();           // local network as access point
+    setupWiFiAsAccessPoint();
   }
   else
   {
-    setupWiFiManager();    // part of local network as station
+    //setupWiFiManager();    // part of local network as station
+    setupWiFiAsStation();
   }
 }
 
@@ -999,10 +1087,8 @@ void initServer()
   server.close();
   // start webserver
 
-  server.on("/help/", handleHelp);
-
   // handles notFound
-  server.onNotFound(handleHelp);
+  server.onNotFound(handleSpin);
 
   // interactive pages
   server.on("/spin/", handleSpin);
@@ -1069,11 +1155,13 @@ void setup()
 
   if (pSettings->beginAsAccessPoint())
   {
-    setupWiFi();        // local network as access point
+    //setupWiFi();        // local network as access point
+    setupWiFiAsAccessPoint();
   }
   else
   {
-    setupWiFiManager();   // part of local network as station
+    //setupWiFiManager();   // part of local network as station
+    setupWiFiAsStation();
   }
 
   delay(pSettings->WAIT_PERIOD);
@@ -1132,7 +1220,7 @@ void loop()
   // For handleHTTPClient
   if (WiFi.getMode() == WIFI_STA)
   {
-    /* send data to target server using ESP8266HTTPClient */
+    // send data to target server using ESP8266HTTPClient
     if (millis() - lastSendMillis > pSettings->getSEND_PERIOD())
     {
       if ((aRequest.readyState() == 0) || (aRequest.readyState() == 4)) {
@@ -1152,14 +1240,11 @@ void loop()
   // For automatic Reset after loosing WiFi connection in STA mode
   if ((WiFi.getMode() == WIFI_AP) && (eepromStartModeAP == false))
   {
-    if (no_sta_counter < NO_STA_COUNTER_MAX)
+    if (millis() > lastStartMillis + NO_STA_MAX_MILLIS)
     {
-      no_sta_counter +=1;
-      delay(50);           // small value because loop must continue for other purposes
-    }
-    else {
-      no_sta_counter = 0;
-      setupWiFiManager();  // try to start WiFi again
+      lastStartMillis = millis();
+      //setupWiFiManager();  // try to start WiFi again
+      setupWiFiAsStation();
     }
   }
 
