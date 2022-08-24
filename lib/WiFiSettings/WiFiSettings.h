@@ -70,29 +70,6 @@ public:
     }
   };
 
-/*
-  WiFiSettings(Settings * pSettings)
-  {
-    this->WAIT_PERIOD = pSettings->WAIT_PERIOD;
-    // Storage for AP and Network SSID, plus AP and Network Password
-    this->storageSize = 132;   // including 4 NULL characters in total (1 for each part) 
-
-    // if there is not enough space on EEPROM, writing will fail and reading will return an empty String
-    if (pSettings->getWiFiDataAddress() + this->storageSize < this->MAX_EEPROM_SIZE)  // is there enough space on EEPROM?
-    {
-      this->storageSizeIsAvailable = true;
-      this->address = pSettings->getWiFiDataAddress();
-      
-      if (this->isInitialized() == false) {
-        this->setAccessPointSSID(String("ESP-" + WiFi.macAddress()));
-        this->setAccessPointPassword(this->passwordAccessPoint);
-        this->saveAuthorizationAccessPoint();
-      }
-    }
-  };
-*/
-
-
   ~WiFiSettings()
   {
   };

@@ -85,7 +85,6 @@ bool detectInfoRequest = false;
 
 // Forward declaration
 void setupWiFiAsAccessPoint();
-//void setupWiFi();
 void handleInfo();
 void switchToAccessPoint();
 void initServer();
@@ -128,90 +127,6 @@ void initSettings() {
   handleInfo();
 }
 // end Settings and EEPROM stuff
-
-/*
-void setupWiFi(){
-  digitalWrite(STATION_LED, HIGH);
-  digitalWrite(ACCESSPOINT_LED, HIGH);
-  WiFi.softAPdisconnect(true);
-  WiFi.mode(WIFI_AP);
-  String myssid = pWifiSettings->readAccessPointSSID();
-  String mypass = pWifiSettings->readAccessPointPassword();
-
-  if (myssid == "")
-  {
-    myssid = "ESP-" + WiFi.macAddress();
-    pWifiSettings->setAccessPointSSID(myssid);
-    pWifiSettings->saveAuthorizationAccessPoint();
-  }
-
-  IPAddress local_IP(192,168,4,1);
-  IPAddress gateway(192,168,4,1);
-  IPAddress subnet(255,255,255,0);
-
-  Serial.print("Setting soft-AP ... ");
-  // mypass needs minimum of 8 characters, otherwise it shall fail !
-  Serial.println(WiFi.softAP(myssid,mypass,3,0) ? "Ready" : "Failed!");
-  Serial.print("Setting soft-AP configuration ... ");
-  Serial.println(WiFi.softAPConfig(local_IP, gateway, subnet) ? "Ready" : "Failed!");
-  Serial.println("Connecting to AP mode");
-
-  delay(500);
-  Serial.print("Soft-AP IP address = ");
-  Serial.println(WiFi.softAPIP());
-  Serial.println(WiFi.softAPmacAddress());
-  Serial.println(WiFi.softAPSSID());
-
-  digitalWrite(ACCESSPOINT_LED, HIGH);
-  digitalWrite(STATION_LED, LOW);
-
-  pSettings->beginAsAccessPoint(true);
-}
-
-void setupWiFiManager () {
-  bool networkConnected = false;
-
-  digitalWrite(STATION_LED, HIGH);
-  digitalWrite(ACCESSPOINT_LED, HIGH);
-
-  String mynetworkssid = pWifiSettings->readNetworkSSID();
-  if (mynetworkssid != "") {
-    String mynetworkpass = pWifiSettings->readNetworkPassword();
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(mynetworkssid, mynetworkpass); 
-
-    Serial.print("Connecting to a WiFi Network");
-    int toomuch = 30;  //gives 30 seconds to connect to a Wifi network
-    while ((WiFi.status() != WL_CONNECTED) && (toomuch > 0))
-    {
-      delay(1000);
-      Serial.print(".");
-      toomuch -=1;
-    }
-    if (toomuch > 0) {
-      Serial.println();
-
-      Serial.print("Connected, IP address: ");
-      Serial.println("local ip address");
-      Serial.println(WiFi.localIP());
-      Serial.println(WiFi.gatewayIP());
-      Serial.println(WiFi.macAddress());
-    
-      networkConnected = true;
-      pSettings->setLastNetworkIP(WiFi.localIP().toString());
-
-      digitalWrite(ACCESSPOINT_LED, LOW);
-      digitalWrite(STATION_LED, HIGH);
-      pSettings->beginAsAccessPoint(false);
-    }
-  }
-  if (networkConnected == false) {
-    // no network found, fall back to access point
-    Serial.println("no network SSID found/selected, fall back to AccessPoint mode");
-    switchToAccessPoint();
-  }
-}
-*/
 
 void setupWiFiAsAccessPoint(){
   digitalWrite(ACCESSPOINT_LED, HIGH);
@@ -326,7 +241,6 @@ void switchToAccessPoint() {
   resetWiFiManagerToFactoryDefaults();
   delay(pSettings->WAIT_PERIOD);
 
-  //setupWiFi();
   setupWiFiAsAccessPoint();
   delay(pSettings->WAIT_PERIOD);
 
@@ -343,7 +257,6 @@ void switchToNetwork() {
   resetWiFiManagerToFactoryDefaults();
   delay(pSettings->WAIT_PERIOD);
 
-  //setupWiFiManager();
   setupWiFiAsStation();
 
   delay(pSettings->WAIT_PERIOD);
@@ -1057,14 +970,12 @@ void toggleWiFi()
   // only toggle by using the button, not saving in EEPROM
   pSettings->beginAsAccessPoint(!  pSettings->beginAsAccessPoint());  // toggle
   if (pSettings->beginAsAccessPoint() == true)
-  {
-    //setupWiFi();           // local network as access point
-    setupWiFiAsAccessPoint();
+  {     
+    setupWiFiAsAccessPoint(); // local network as access point
   }
   else
-  {
-    //setupWiFiManager();    // part of local network as station
-    setupWiFiAsStation();
+  { 
+    setupWiFiAsStation();     // part of local network as station
   }
 }
 
@@ -1136,7 +1047,11 @@ void checkSpinValue()
 {
   if (pSettings->getRoleModel() == INDEPENDENT)
   {
-    motorSpeedStepper = maxSpeed;
+    motorSpeedStepper = round(pSettings->getRoleModelRPM() * stepsPerRevolution / 60);
+    if (motorSpeedStepper > maxSpeed)
+    {
+      motorSpeedStepper = maxSpeed;
+    }
   }
 }
 
@@ -1148,20 +1063,18 @@ void setup()
 
    // see https://forum.arduino.cc/index.php?topic=121654.0 voor circuit brownout
   delay(pSettings->WAIT_PERIOD);
-  // use EITHER setupWiFi OR setupWiFiManager
+  // use EITHER setupWiFiAsAccessPoint OR setupWiFiAsStation
   
    // get saved setting from EEPROM
   eepromStartModeAP = pSettings->beginAsAccessPoint();
 
   if (pSettings->beginAsAccessPoint())
   {
-    //setupWiFi();        // local network as access point
-    setupWiFiAsAccessPoint();
+    setupWiFiAsAccessPoint(); // local network as access point
   }
   else
-  {
-    //setupWiFiManager();   // part of local network as station
-    setupWiFiAsStation();
+  { 
+    setupWiFiAsStation();     // part of local network as station
   }
 
   delay(pSettings->WAIT_PERIOD);
@@ -1243,8 +1156,7 @@ void loop()
     if (millis() > lastStartMillis + NO_STA_MAX_MILLIS)
     {
       lastStartMillis = millis();
-      //setupWiFiManager();  // try to start WiFi again
-      setupWiFiAsStation();
+      setupWiFiAsStation();   // try to start WiFi again
     }
   }
 
