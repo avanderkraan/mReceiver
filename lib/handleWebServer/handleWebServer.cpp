@@ -416,9 +416,13 @@ void info(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWifiSe
   result += getUpdatePart(pSettings);
 
   String myIP = "";
+  String startStrong = "<strong>";
+  String endStrong = "</strong>";
   if (WiFi.getMode() == WIFI_AP)
   {
     myIP = WiFi.softAPIP().toString();
+    startStrong = "";
+    endStrong = "";
   }
   if (WiFi.getMode() == WIFI_STA)
   {
@@ -426,17 +430,21 @@ void info(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWifiSe
 
     result += "With an update request the information below in bold will be sent to ";
     result += pSettings->getTargetServer();
-    result += "<br>Passwords and IP addresses are not sent to the server\r\n";
+    result += "<br>Passwords and IP addresses are not sent to the server<br>\r\n";
   }
 
-  result += "\r\n\r\n<br><br>IP adres: ";
+  result += "\r\n<br>IP address: ";
   result += myIP;
+  result += "\r\n<br>MAC address: ";
+  result += WiFi.macAddress();
 
-  result += "\r\n<br><strong>Firmware version: ";
+  result += startStrong;
+  result += "\r\n<br>Firmware version: ";
   result += pSettings->getFirmwareVersion();
-  result += "</strong>";
+  result += endStrong;
 
-  result += "\r\n<br><strong>Motor settings:";
+  result += startStrong;
+  result += "\r\n<br>Motor settings:";
   result += "\r\n<br>- Steps per revolution: ";
   result += pSettings->getStepsPerRevolution();
   result += "\r\n<br>- Maximum speed: ";
@@ -445,7 +453,7 @@ void info(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWifiSe
   result += pSettings->getDirection();
   result += "\r\n<br>- Interface type: ";
   result += pSettings->getMotorInterfaceType();
-  result += "</strong>";
+  result += endStrong;
  
   result += "\r\n<br>Access Point SSID: ";
   result += pWifiSettings->readAccessPointSSID();
@@ -929,9 +937,13 @@ void info_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWif
   result += getUpdatePart_nl(pSettings);
 
   String myIP = "";
+  String startStrong = "<strong";
+  String endStrong = "</strong>";
   if (WiFi.getMode() == WIFI_AP)
   {
     myIP = WiFi.softAPIP().toString();
+    startStrong = "";
+    endStrong = "";
   }
   if (WiFi.getMode() == WIFI_STA)
   {
@@ -939,18 +951,22 @@ void info_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWif
 
     result += "Bij een update aanvraag wordt de dikgedrukte informatie die je hieronder ziet opgestuurd naar \r\n";
     result += pSettings->getTargetServer();     
-    result += "<br>Wachtwoorden en IP adressen worden niet naar de server gestuurd\r\n";
+    result += "<br>Wachtwoorden en IP adressen worden niet naar de server gestuurd<br>\r\n";
 
   }
 
-  result += "\r\n\r\n<br><br>IP adres: ";
+  result += "\r\n<br>IP adres: ";
   result += myIP;
+  result += "\r\n<br>MAC adres: ";
+  result += WiFi.macAddress();
 
-  result += "\r\n<br><strong>Firmware versie: ";
+  result += startStrong;
+  result += "\r\n<br>Firmware versie: ";
   result += pSettings->getFirmwareVersion();
-  result += "</strong>";
+  result += endStrong;
 
-  result += "\r\n<br><strong>Motor instellingen: ";
+  result += "\r\n<br>Motor instellingen: ";
+  result += startStrong;
   result += "\r\n<br>- Stappen per omwenteling: ";
   result += pSettings->getStepsPerRevolution();
   result += "\r\n<br>- Maximale snelheid: ";
@@ -959,7 +975,7 @@ void info_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWif
   result += pSettings->getDirection();
   result += "\r\n<br>- Interface type: ";
   result += pSettings->getMotorInterfaceType();
-  result += "</strong>";
+  result += endStrong;
 
   result += "\r\n<br>Access Point SSID: ";
   result += pWifiSettings->readAccessPointSSID();

@@ -149,12 +149,12 @@ void setupWiFiAsAccessPoint(){
   IPAddress gateway(192,168,4,1);
   IPAddress subnet(255,255,255,0);
 
-  Serial.print("Setting soft-AP ... ");
+  Serial.println("Setting soft-AP ... ");
+  Serial.print("Setting soft-AP configuration: ");
   Serial.println(WiFi.softAPConfig(local_IP, gateway, subnet) ? "Ready" : "Failed!");
-  Serial.print("Connecting to AP mode");
+  Serial.print("Connecting to AP mode: ");
   // mypass needs minimum of 8 characters
   Serial.println(WiFi.softAP(myssid,mypass,3,0,4) ? "Ready" : "Failed!");
-  Serial.print("Setting soft-AP configuration ... ");
 
   delay(500);
   Serial.print("Soft-AP IP address = ");
@@ -337,7 +337,6 @@ void handleInfo() {
     info(server, pSettings, pWifiSettings);
   }
 
-  Serial.println("wifi gegevens");
   Serial.print("readAccessPointSSID: ");
   Serial.println(pWifiSettings->readAccessPointSSID());
   Serial.print("readNetworkSSID: ");
@@ -1004,6 +1003,7 @@ void initServer()
   // interactive pages
   server.on("/spin/", handleSpin);
   server.on("/wifi/", handleWiFi);
+  server.on("/info/", handleInfo);
   // handles input from interactive pages
   server.on("/networkssid/", handleNetworkSSID);
   server.on("/wifiConnect/", handleWifiConnect);
@@ -1030,9 +1030,6 @@ void initServer()
   // /connect/ without arguments connects to the production server, 
   //           port and path
   server.on("/connect/", handleConnect);
-
-  // handles info
-  server.on("/info/", handleInfo);
 
   // handles a check if this url is available
   // remove this when clients are availabe
