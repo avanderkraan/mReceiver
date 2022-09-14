@@ -937,7 +937,7 @@ void info_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWif
   result += getUpdatePart_nl(pSettings);
 
   String myIP = "";
-  String startStrong = "<strong";
+  String startStrong = "<strong>";
   String endStrong = "</strong>";
   if (WiFi.getMode() == WIFI_AP)
   {
