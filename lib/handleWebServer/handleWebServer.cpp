@@ -177,17 +177,32 @@ String getUpdatePart(Settings * pSettings)
     result += "Access Point\r\n";
     result += "<br>\r\n";
     result += "(url: <a href='http://model.local/' target='_blank'>model.local</a> or <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
+    result += "<br>\r\n";
+    if (pSettings->getLastNetworkIP() == "Unknown")
+    {
+      result += "(last known Network address is unknown";
+      result += ")\r\n";
+    }
+    else
+    {
+      result += "(last known Network address is: ";
+      result += pSettings->getLastNetworkIP();
+      result += ")\r\n";
+    }
   }
   else
   {
     result += "Network Station\r\n";
     result += "<br>\r\n";
-    result += "(url: <a href='http://model.local/' target='_blank'>model.local</a> or via a local IP address, last known is: <a href='http://";
-    result += pSettings->getLastNetworkIP();
-    result += "/' target='_blank'>";
-    result += pSettings->getLastNetworkIP();
-    result += "</a>\r\n";
-    result += ")\r\n";
+    if (pSettings->getLastNetworkIP() != "Unknown")
+    {
+      result += "(url: <a href='http://model.local/' target='_blank'>model.local</a> or via a local IP address, last known is: <a href='http://";
+      result += pSettings->getLastNetworkIP();
+      result += "/' target='_blank'>";
+      result += pSettings->getLastNetworkIP();
+      result += "</a>\r\n";
+      result += ")\r\n";
+    }
   }
   result += "<br><br><input id='restartButton' type='button' onclick='restart();' value='Restart'<br>\r\n";
   result += "<br><br>\r\n";
@@ -223,7 +238,7 @@ String getUpdatePart(Settings * pSettings)
   result += "  function sendUpdateFirmware(data, path) {\r\n";
   result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
   result += "    xhr.open(\"POST\", path);\r\n";
-  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded; charset=UTF-8\");\r\n";
   result += "    document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
   result += "    xhr.onreadystatechange = function() { // Call a function when the state changes\r\n";
   result += "     var myResponseText = \"\";\r\n";
@@ -252,17 +267,32 @@ String getUpdatePart_nl(Settings * pSettings)
     result += "Access Point\r\n";
     result += "<br>\r\n";
     result += "(url: <a href='http://model.local/' target='_blank'>model.local</a> of <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
+    result += "<br>\r\n";
+    if (pSettings->getLastNetworkIP() == "Unknown")
+    {
+      result += "(laatst bekende Netwerk adres is onbekend";
+      result += ")\r\n";
+    }
+    else
+    {
+      result += "(laatst bekende Netwerk adres is: ";
+      result += pSettings->getLastNetworkIP();
+      result += ")\r\n";
+    }
   }
   else
   {
     result += "Netwerk Station\r\n";
     result += "<br>\r\n";
-    result += "(url: <a href='http://model.local/' target='_blank'>model.local</a> of via een lokaal IP adres, laatst bekende adres is: <a href='http://";
-    result += pSettings->getLastNetworkIP();
-    result += "/' target='_blank'>";
-    result += pSettings->getLastNetworkIP();
-    result += "</a>\r\n";
-    result += ")\r\n";
+    if (pSettings->getLastNetworkIP() != "Unknown")
+    {
+      result += "(url: <a href='http://model.local/' target='_blank'>model.local</a> of via een lokaal IP adres, laatst bekende adres is: <a href='http://";
+      result += pSettings->getLastNetworkIP();
+      result += "/' target='_blank'>";
+      result += pSettings->getLastNetworkIP();
+      result += "</a>\r\n";
+      result += ")\r\n";
+    }
   }
   result += "<br>\r\n";
   result += "<div id=\"sendMessage\"></div>\r\n";
@@ -303,7 +333,7 @@ String getUpdatePart_nl(Settings * pSettings)
   result += "  function sendUpdateFirmware(data, path) {\r\n";
   result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
   result += "    xhr.open(\"POST\", path);\r\n";
-  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded; charset=UTF-8\");\r\n";
   result += "    document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
   result += "    xhr.onreadystatechange = function() { // Call a function when the state changes\r\n";
   result += "     var myResponseText = \"\";\r\n";
@@ -343,7 +373,7 @@ String getFooterPart(Settings * pSettings)
   result += "  function sendDataHome(data, path) {\r\n";
   result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
   result += "    xhr.open(\"POST\", path);\r\n";
-  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded; charset=UTF-8\");\r\n";
   result += "    document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
   result += "    xhr.onreadystatechange = function() { // Call a function when the state changes\r\n";
   result += "     var myResponseText = \"\";\r\n";
@@ -385,7 +415,7 @@ String getFooterPart_nl(Settings * pSettings)
   result += "  function sendDataHome(data, path) {\r\n";
   result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
   result += "    xhr.open(\"POST\", path);\r\n";
-  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded; charset=UTF-8\");\r\n";
   result += "    document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
   result += "    xhr.onreadystatechange = function() { // Call a function when the state changes\r\n";
   result += "     var myResponseText = \"\";\r\n";
@@ -617,7 +647,7 @@ void spin(ESP8266WebServer &server, Settings * pSettings)
   result += "  function sendDataSpin(data) {\r\n";
   result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
   result += "    xhr.open(\"POST\", \"/spinSettings/\");\r\n";
-  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded; charset=UTF-8\");\r\n";
   result += "      document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
   result += "      xhr.onreadystatechange = function() { // Call a function when the state changes\r\n";
   result += "        var myResponseText = \"\";\r\n";
@@ -774,7 +804,7 @@ void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSe
   result += "  function sendDataConnect(data) {\r\n";
   result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
   result += "    xhr.open(\"POST\", \"/wifiConnect/\");\r\n";
-  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded; charset=UTF-8\");\r\n";
   result += "    document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
   result += "    xhr.onreadystatechange = function() { // Call a function when the state changes\r\n";
   result += "     var myResponseText = \"\";\r\n";
@@ -1140,7 +1170,7 @@ void spin_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "  function sendDataSpin(data) {\r\n";
   result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
   result += "    xhr.open(\"POST\", \"/spinSettings/\");\r\n";
-  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded; charset=UTF-8\");\r\n";
   result += "      document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
   result += "      xhr.onreadystatechange = function() { // Call a function when the state changes\r\n";
   result += "        var myResponseText = \"\";\r\n";
@@ -1298,7 +1328,7 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   result += "  function sendDataConnect(data) {\r\n";
   result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
   result += "    xhr.open(\"POST\", \"/wifiConnect/\");\r\n";
-  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded; charset=UTF-8\");\r\n";
   result += "    document.getElementById(\"sendMessage\").innerHTML = \"Even geduld\";\r\n";
   result += "    xhr.onreadystatechange = function() { // Call a function when the state changes\r\n";
   result += "     var myResponseText = \"\";\r\n";
