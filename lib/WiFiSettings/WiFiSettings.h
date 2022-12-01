@@ -3,6 +3,7 @@
 #include <ESP8266WiFi.h>          //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 #include <EEPROM.h>               // used to store and read settings
 #include "settings.h"
+#include "dencrypt.h"
 
 class WiFiSettings
 {
@@ -40,12 +41,15 @@ private:
   /* Storage size check, default false */
   bool storageSizeIsAvailable = false;
 
+  Dencrypt dencrypt = Dencrypt();
+
 public:
   WiFiSettings(Settings * pSettings)
   {
     this->WAIT_PERIOD = pSettings->WAIT_PERIOD;
     /* Storage for AP and Network SSID, plus AP and Network Password */
-    this->storageSize = 132;   // including 4 NULL characters in total (1 for each part) 
+    //this->storageSize = 132;   // including 4 NULL characters in total (1 for each part) 
+    this->storageSize = 516;   // including 4 NULL characters in total (1 for each part) and 128 chars in passwords
 
     /* first thing to do is set the start-address for this module to the offsetaddress as defined in Settings */ 
     this->address = pSettings->getWiFiDataAddress();
