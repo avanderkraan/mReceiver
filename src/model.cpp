@@ -912,6 +912,12 @@ void processServerData(String responseData) {
     pSettings->saveDeviceKey(); // save to EEPROM
   }
 
+  String requestInterval = getValueFromJSON("t", responseData);
+  if ((requestInterval != ""))
+  {
+    pSettings->setRequestInterval(requestInterval);
+  }
+
   String pushFirmwareVersion = getValueFromJSON("pFv", responseData);
   if (pushFirmwareVersion != "")
   {  
@@ -1131,7 +1137,7 @@ void loop()
   if (WiFi.getMode() == WIFI_STA)
   {
     // send data to target server using ESP8266HTTPClient
-    if (millis() - lastSendMillis > pSettings->getSEND_PERIOD())
+    if (millis() - lastSendMillis > pSettings->getSendPeriod())
     {
       if ((aRequest.readyState() == 0) || (aRequest.readyState() == 4)) {
           sendDataToTarget(&aRequest, wifiClient, pSettings, pWifiSettings, String(WiFi.macAddress()), detectInfoRequest);

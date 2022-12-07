@@ -16,9 +16,14 @@ void Settings::setDeviceKey(String myDeviceKey)
   this->deviceKey = myDeviceKey;
 }
 
-uint16_t Settings::getSEND_PERIOD()
+uint16_t Settings::getSendPeriod()
 {
-  return this->SEND_PERIOD;
+  return this->sendPeriod;
+}
+
+void Settings::setRequestInterval(String requestInterval)
+{
+  this->sendPeriod = this->atoi16_t(requestInterval) * 1000;
 }
 
 String Settings::getTargetServer()
