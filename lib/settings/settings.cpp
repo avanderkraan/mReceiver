@@ -23,7 +23,12 @@ uint16_t Settings::getSendPeriod()
 
 void Settings::setRequestInterval(String requestInterval)
 {
-  this->sendPeriod = this->atoi16_t(requestInterval) * 1000;
+  uint16_t result = this->atoi16_t(requestInterval);
+  if (result == 0)
+  {
+    result = 5;  // set to 5 seconds
+  }
+  this->sendPeriod = result * 1000;  // milliseconds
 }
 
 String Settings::getTargetServer()
