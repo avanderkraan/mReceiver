@@ -868,7 +868,7 @@ void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSe
   result += "  }\r\n";
   result += "  var uniqueShowNetworkList = [...new Set(showNetworkList)];\r\n";
   result += "  for (var key in uniqueShowNetworkList) {\r\n";
-  result += "    showNetwork += \"<div>\" + uniqueShowNetworkList[key] + \"</div>\";\r\n";
+  result += "    showNetwork += \"<div>\" + uniqueShowNetworkList[key].replaceAll(\"?\",\"'\") + \"</div>\";\r\n";
   result += "  }\r\n";
   result += "  if (showNetwork == \"\") {\r\n";
   result += "    showNetwork = \"No WiFi signal available\"\r\n";
@@ -1392,7 +1392,7 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   result += "  }\r\n";
   result += "  var uniqueShowNetworkList = [...new Set(showNetworkList)];\r\n";
   result += "  for (var key in uniqueShowNetworkList) {\r\n";
-  result += "    showNetwork += \"<div>\" + uniqueShowNetworkList[key] + \"</div>\";\r\n";
+  result += "    showNetwork += \"<div>\" + uniqueShowNetworkList[key].replaceAll(\"?\",\"'\") + \"</div>\";\r\n";
   result += "  }\r\n";
   result += "  if (showNetwork == \"\") {\r\n";
   result += "    showNetwork = \"Geen WiFi signaal beschikbaar\"\r\n";

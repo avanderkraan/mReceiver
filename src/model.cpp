@@ -693,18 +693,21 @@ void handleLanguage() {
 
 void handleNetworkSSID() {
   // creates a list of {ssid, including input field , dBm}
+  // to prevent an error, the single quote will be replace here with a question mark
+  //                      and restored within the handleWebServer  
   String result = "";
   int numberOfNetworks = WiFi.scanNetworks();
   for(int i =0; i<numberOfNetworks; i++){ 
-
+    String foundSSID = WiFi.SSID(i);
+    foundSSID.replace("'", "?");
     if (i > 0) {
       result += ",";
     }
     result += "{ssid:";
     result += "'<span><input type=\"radio\" name=\"networkSSID\" onclick=\"selectNetworkSSID(this)\" value=\"";
-    result += WiFi.SSID(i);
+    result += foundSSID;
     result += "\">";
-    result += WiFi.SSID(i);
+    result += foundSSID;
     result += "</span>";
     result += "',";
     result += "dBm:'";
